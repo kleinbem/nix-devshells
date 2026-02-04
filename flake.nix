@@ -10,50 +10,159 @@
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
+    devenv.url = "github:cachix/devenv";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
+    nix2container.url = "github:nlewo/nix2container";
+    nix2container.inputs.nixpkgs.follows = "nixpkgs";
+    mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
   };
 
-  outputs = inputs@{ flake-parts, ... }:
+  outputs =
+    inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+      imports = [
+        inputs.devenv.flakeModule
+      ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
 
-      perSystem = { config, pkgs, system, ... }:
+      perSystem =
+        {
+          pkgs,
+          system,
+          ...
+        }:
         let
           treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
             projectRootFile = "flake.nix";
             programs.nixfmt.enable = true;
           };
+
+          # Common configuration shared across all shells
+          commonShell = {
+            # Use a writable path for state to avoid read-only store path issues
+            # when this shell is consumed as a flake input.
+            devenv.root = "/tmp/nix-devshells-state";
+          };
         in
         {
           formatter = treefmtEval.config.build.wrapper;
 
-          checks.pre-commit-check = inputs.pre-commit-hooks.lib.${system}.run {
-            src = ./.;
-            hooks = {
-              nixfmt.enable = true;
-              statix.enable = true;
-              deadnix.enable = true;
+          devenv.shells = {
+            default = {
+              imports = [ commonShell ];
+              name = "meta-default";
+              git-hooks.hooks = {
+                nixfmt.enable = true;
+                statix.enable = true;
+                deadnix.enable = true;
+              };
+              packages = [
+                pkgs.aider-chat
+                pkgs.statix
+                pkgs.nixfmt
+                pkgs.deadnix
+                pkgs.nil
+                pkgs.sops
+                pkgs.age
+                pkgs.age-plugin-yubikey
+                inputs.nixos-generators.packages.${system}.nixos-generate
+                pkgs.just
+                pkgs.lazygit
+                pkgs.gh
+                pkgs.jq
+                pkgs.ripgrep
+                pkgs.fzf
+              ];
+              enterShell = ''
+                echo "🤖 DevShell Loaded (Devenv)"
+                unset SSH_ASKPASS_REQUIRE
+                unset SSH_ASKPASS
+              '';
             };
-          };
 
-          devShells.default = pkgs.mkShell {
-            buildInputs = [
-              pkgs.aider-chat
-              pkgs.statix
-              pkgs.nixfmt
-              pkgs.deadnix
-              pkgs.nil
-              pkgs.sops
-              pkgs.age
-              pkgs.age-plugin-yubikey
-              inputs.nixos-generators.packages.${system}.nixos-generate
-            ];
+            python = {
+              imports = [ commonShell ];
+              languages.python = {
+                enable = true;
+                uv.enable = true;
+              };
+              packages = [ pkgs.ruff ];
+              enterShell = ''
+                echo "🐍 Python DevShell Loaded"
+              '';
+            };
 
-            shellHook = ''
-              ${config.checks.pre-commit-check.shellHook}
-              echo "🤖 DevShell Loaded"
-              unset SSH_ASKPASS_REQUIRE
-              unset SSH_ASKPASS
-            '';
+            rust = {
+              imports = [ commonShell ];
+              languages.rust = {
+                enable = true;
+                channel = "stable";
+              };
+              packages = [ pkgs.rust-analyzer pkgs.clippy pkgs.rustfmt ];
+              enterShell = ''
+                echo "🦀 Rust DevShell Loaded"
+              '';
+            };
+
+            go = {
+              imports = [ commonShell ];
+              languages.go = {
+                enable = true;
+              };
+              packages = [ pkgs.gopls pkgs.delve ];
+              enterShell = ''
+                echo "🐹 Go DevShell Loaded"
+              '';
+            };
+
+            node = {
+              imports = [ commonShell ];
+              languages.javascript = {
+                enable = true;
+                npm.enable = false;
+                pnpm.enable = true;
+              };
+              languages.typescript.enable = true;
+              packages = [ pkgs.nodejs_20 ];
+              enterShell = ''
+                echo "📦 Node DevShell Loaded"
+              '';
+            };
+
+            full-stack = {
+              imports = [ commonShell ];
+              services.postgres.enable = true;
+              services.redis.enable = true;
+              
+              # Example scripts to run things
+              scripts.run-all.exec = ''
+                echo "Starting services..."
+                devenv up
+              '';
+
+              enterShell = ''
+                echo "🚀 Full Stack DevShell Loaded"
+              '';
+            };
+
+            ai = {
+              imports = [ commonShell ];
+              languages.python = {
+                enable = true;
+                uv.enable = true;
+              };
+              packages = [ pkgs.ollama ];
+              processes.ollama.exec = "ollama serve";
+              enterShell = ''
+                echo "🤖 AI DevShell Loaded (Ollama Ready - 'devenv up' to start)"
+              '';
+            };
           };
         };
     };
