@@ -49,14 +49,12 @@
             # when this shell is consumed as a flake input.
             # Use a writable path for state to avoid read-only store path issues
             # when this shell is consumed as a flake input.
-            # IMPURE: Requires --impure flag or accept fallback
             devenv.root = let
-              fallback = "/tmp/nix-devshells-state"; # Safe fallback if pure
-            # IMPURE: Requires --impure flag or accept fallback
-            devenv.root = let
-              fallback = "/tmp/nix-devshells-state"; # Safe fallback if pure
-              home = builtins.getEnv "HOME";
-            in if home != "" then "${home}/.local/state/nix-devshells" else fallback;
+              # Use the XDG state home if available, otherwise fallback to a sane default
+              stateDir = if builtins.getEnv "XDG_STATE_HOME" != ""
+                         then builtins.getEnv "XDG_STATE_HOME"
+                         else "/home/martin/.local/state"; # Hardcode fallback as impure check prevention
+            in "${stateDir}/nix-devshells";
           };
         in
         {
