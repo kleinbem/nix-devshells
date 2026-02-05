@@ -10,7 +10,7 @@
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
-    devenv.url = "github:cachix/devenv";
+    devenv.url = "github:cachix/devenv/v1.3.1";
     rust-overlay.url = "github:oxalica/rust-overlay";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     nix2container.url = "github:nlewo/nix2container";
@@ -47,16 +47,8 @@
           commonShell = {
             # Use a writable path for state to avoid read-only store path issues
             # when this shell is consumed as a flake input.
-            # Use a writable path for state to avoid read-only store path issues
-            # when this shell is consumed as a flake input.
             # IMPURE: Requires --impure flag or accept fallback
-            devenv.root = let
-              fallback = "/tmp/nix-devshells-state"; # Safe fallback if pure
-            # IMPURE: Requires --impure flag or accept fallback
-            devenv.root = let
-              fallback = "/tmp/nix-devshells-state"; # Safe fallback if pure
-              home = builtins.getEnv "HOME";
-            in if home != "" then "${home}/.local/state/nix-devshells" else fallback;
+            devenv.root = "/home/martin/.local/state/nix-devshells";
           };
         in
         {
