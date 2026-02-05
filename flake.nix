@@ -31,10 +31,42 @@
         "aarch64-darwin"
       ];
 
+      flake.devenvModules.default = { pkgs, ... }: {
+        name = "meta-default";
+        git-hooks.hooks = {
+          nixfmt.enable = true;
+          statix.enable = true;
+          deadnix.enable = true;
+        };
+        packages = [
+          pkgs.aider-chat
+          pkgs.statix
+          pkgs.nixfmt
+          pkgs.deadnix
+          pkgs.nil
+          pkgs.sops
+          pkgs.age
+          pkgs.age-plugin-yubikey
+          inputs.nixos-generators.packages.${pkgs.system}.nixos-generate
+          pkgs.just
+          pkgs.lazygit
+          pkgs.gh
+          pkgs.jq
+          pkgs.ripgrep
+          pkgs.fzf
+        ];
+        enterShell = ''
+          echo "🤖 DevShell Loaded (Devenv)"
+          unset SSH_ASKPASS_REQUIRE
+          unset SSH_ASKPASS
+        '';
+      };
+
       perSystem =
         {
           pkgs,
           system,
+          self,
           ...
         }:
         let
@@ -42,53 +74,16 @@
             projectRootFile = "flake.nix";
             programs.nixfmt.enable = true;
           };
-
-          # Common configuration shared across all shells
-          commonShell = {
-            # Use a writable path for state to avoid read-only store path issues
-            # when this shell is consumed as a flake input.
-            # IMPURE: Requires --impure flag or accept fallback
-            devenv.root = "/home/martin/.local/state/nix-devshells";
-          };
         in
         {
           formatter = treefmtEval.config.build.wrapper;
 
           devenv.shells = {
             default = {
-              imports = [ commonShell ];
-              name = "meta-default";
-              git-hooks.hooks = {
-                nixfmt.enable = true;
-                statix.enable = true;
-                deadnix.enable = true;
-              };
-              packages = [
-                pkgs.aider-chat
-                pkgs.statix
-                pkgs.nixfmt
-                pkgs.deadnix
-                pkgs.nil
-                pkgs.sops
-                pkgs.age
-                pkgs.age-plugin-yubikey
-                inputs.nixos-generators.packages.${system}.nixos-generate
-                pkgs.just
-                pkgs.lazygit
-                pkgs.gh
-                pkgs.jq
-                pkgs.ripgrep
-                pkgs.fzf
-              ];
-              enterShell = ''
-                echo "🤖 DevShell Loaded (Devenv)"
-                unset SSH_ASKPASS_REQUIRE
-                unset SSH_ASKPASS
-              '';
+              imports = [ self.devenvModules.default ];
             };
 
             python = {
-              imports = [ commonShell ];
               languages.python = {
                 enable = true;
                 uv.enable = true;
@@ -100,7 +95,6 @@
             };
 
             rust = {
-              imports = [ commonShell ];
               languages.rust = {
                 enable = true;
                 channel = "stable";
@@ -112,7 +106,6 @@
             };
 
             go = {
-              imports = [ commonShell ];
               languages.go = {
                 enable = true;
               };
@@ -123,7 +116,6 @@
             };
 
             node = {
-              imports = [ commonShell ];
               languages.javascript = {
                 enable = true;
                 npm.enable = false;
@@ -137,7 +129,6 @@
             };
 
             full-stack = {
-              imports = [ commonShell ];
               services.postgres.enable = true;
               services.redis.enable = true;
               
@@ -153,7 +144,6 @@
             };
 
             ai = {
-              imports = [ commonShell ];
               languages.python = {
                 enable = true;
                 uv.enable = true;
