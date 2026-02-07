@@ -54,6 +54,7 @@
           pkgs.jq
           pkgs.ripgrep
           pkgs.fzf
+          pkgs.android-tools
         ];
         enterShell = ''
           echo "🤖 DevShell Loaded (Devenv)"
