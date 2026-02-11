@@ -19,7 +19,7 @@
   };
 
   outputs =
-    inputs@{ flake-parts, ... }:
+    inputs@{ self, flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.devenv.flakeModule
@@ -33,7 +33,7 @@
 
       flake.devenvModules.default = { pkgs, ... }: {
         name = "meta-default";
-        git-hooks.hooks = {
+        pre-commit.hooks = {
           nixfmt.enable = true;
           statix.enable = true;
           deadnix.enable = true;
@@ -67,7 +67,6 @@
         {
           pkgs,
           system,
-          self,
           ...
         }:
         let
