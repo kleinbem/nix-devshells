@@ -10,7 +10,7 @@
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
-    devenv.url = "github:cachix/devenv/v1.3.1";
+    devenv.url = "github:cachix/devenv";
     rust-overlay.url = "github:oxalica/rust-overlay";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     nix2container.url = "github:nlewo/nix2container";
@@ -66,7 +66,6 @@
       perSystem =
         {
           pkgs,
-          system,
           ...
         }:
         let
