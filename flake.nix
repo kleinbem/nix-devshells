@@ -31,36 +31,17 @@
         "aarch64-darwin"
       ];
 
-      flake.devenvModules.default = { pkgs, ... }: {
-        name = "meta-default";
-        pre-commit.hooks = {
-          nixfmt.enable = true;
-          statix.enable = true;
-          deadnix.enable = true;
-        };
-        packages = [
-          pkgs.aider-chat
-          pkgs.statix
-          pkgs.nixfmt
-          pkgs.deadnix
-          pkgs.nil
-          pkgs.sops
-          pkgs.age
-          pkgs.age-plugin-yubikey
-          inputs.nixos-generators.packages.${pkgs.system}.nixos-generate
-          pkgs.just
-          pkgs.lazygit
-          pkgs.gh
-          pkgs.jq
-          pkgs.ripgrep
-          pkgs.fzf
-          pkgs.android-tools
-        ];
-        enterShell = ''
-          echo "🤖 DevShell Loaded (Devenv)"
-          unset SSH_ASKPASS_REQUIRE
-          unset SSH_ASKPASS
-        '';
+      flake.devenvModules = {
+        default = ./shells/default/default.nix;
+        python = ./shells/python.nix;
+        rust = ./shells/rust.nix;
+        go = ./shells/go.nix;
+        node = ./shells/node.nix;
+        full-stack = ./shells/full-stack.nix;
+        ai = ./shells/ai.nix;
+        android = ./shells/android.nix;
+        lua = ./shells/lua.nix;
+        jail = ./modules/jail.nix;
       };
 
       perSystem =
@@ -77,82 +58,23 @@
         {
           formatter = treefmtEval.config.build.wrapper;
 
-          devenv.shells = {
-            default = {
-              imports = [ self.devenvModules.default ];
+          devenv.shells = let
+            # Using hardcoded path for local development to avoid read-only store issues
+            localRoot = "/home/martin/Develop/github.com/kleinbem/nix/nix-devshells";
+            mkShell = module: {
+              imports = [ module ];
+              devenv.root = localRoot;
             };
-
-            python = {
-              languages.python = {
-                enable = true;
-                uv.enable = true;
-              };
-              packages = [ pkgs.ruff ];
-              enterShell = ''
-                echo "🐍 Python DevShell Loaded"
-              '';
-            };
-
-            rust = {
-              languages.rust = {
-                enable = true;
-                channel = "stable";
-              };
-              packages = [ pkgs.rust-analyzer pkgs.clippy pkgs.rustfmt ];
-              enterShell = ''
-                echo "🦀 Rust DevShell Loaded"
-              '';
-            };
-
-            go = {
-              languages.go = {
-                enable = true;
-              };
-              packages = [ pkgs.gopls pkgs.delve ];
-              enterShell = ''
-                echo "🐹 Go DevShell Loaded"
-              '';
-            };
-
-            node = {
-              languages.javascript = {
-                enable = true;
-                npm.enable = false;
-                pnpm.enable = true;
-              };
-              languages.typescript.enable = true;
-              packages = [ pkgs.nodejs_20 ];
-              enterShell = ''
-                echo "📦 Node DevShell Loaded"
-              '';
-            };
-
-            full-stack = {
-              services.postgres.enable = true;
-              services.redis.enable = true;
-              
-              # Example scripts to run things
-              scripts.run-all.exec = ''
-                echo "Starting services..."
-                devenv up
-              '';
-
-              enterShell = ''
-                echo "🚀 Full Stack DevShell Loaded"
-              '';
-            };
-
-            ai = {
-              languages.python = {
-                enable = true;
-                uv.enable = true;
-              };
-              packages = [ pkgs.ollama ];
-              processes.ollama.exec = "ollama serve";
-              enterShell = ''
-                echo "🤖 AI DevShell Loaded (Ollama Ready - 'devenv up' to start)"
-              '';
-            };
+          in {
+            default = mkShell self.devenvModules.default;
+            python = mkShell self.devenvModules.python;
+            rust = mkShell self.devenvModules.rust;
+            go = mkShell self.devenvModules.go;
+            node = mkShell self.devenvModules.node;
+            full-stack = mkShell self.devenvModules.full-stack;
+            ai = mkShell self.devenvModules.ai;
+            android = mkShell self.devenvModules.android;
+            lua = mkShell self.devenvModules.lua;
           };
         };
     };
