@@ -1,6 +1,7 @@
-{ pkgs, inputs, ... }: {
+{ pkgs, inputs, ... }:
+{
   name = "meta-default";
-  pre-commit.hooks = {
+  git-hooks.hooks = {
     nixfmt.enable = true;
     statix.enable = true;
     deadnix.enable = true;
@@ -14,7 +15,7 @@
     pkgs.sops
     pkgs.age
     pkgs.age-plugin-yubikey
-    inputs.nixos-generators.packages.${pkgs.system}.nixos-generate
+    inputs.nixos-generators.packages.${pkgs.stdenv.hostPlatform.system}.nixos-generate
     pkgs.just
     pkgs.lazygit
     pkgs.gh
@@ -22,6 +23,8 @@
     pkgs.ripgrep
     pkgs.fzf
     pkgs.android-tools
+    pkgs.yq-go
+    pkgs.colmena
   ];
   enterShell = ''
     echo "🤖 DevShell Loaded (Devenv)"

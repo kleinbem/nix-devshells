@@ -58,24 +58,32 @@
         {
           formatter = treefmtEval.config.build.wrapper;
 
-          devenv.shells = let
-            # Using hardcoded path for local development to avoid read-only store issues
-            localRoot = "/home/martin/Develop/github.com/kleinbem/nix/nix-devshells";
-            mkShell = module: {
-              imports = [ module ];
-              devenv.root = localRoot;
+          devenv.shells =
+            let
+              # Using hardcoded path for local development to avoid read-only store issues
+              localRoot = "/home/martin/Develop/github.com/kleinbem/nix/nix-devshells";
+              mkShell =
+                module:
+                {
+                  imports = [ module ];
+                  devenv.root = localRoot;
+                }
+                // {
+                  # Pass inputs to the module arguments
+                  _module.args.inputs = inputs;
+                };
+            in
+            {
+              default = mkShell self.devenvModules.default;
+              python = mkShell self.devenvModules.python;
+              rust = mkShell self.devenvModules.rust;
+              go = mkShell self.devenvModules.go;
+              node = mkShell self.devenvModules.node;
+              full-stack = mkShell self.devenvModules.full-stack;
+              ai = mkShell self.devenvModules.ai;
+              android = mkShell self.devenvModules.android;
+              lua = mkShell self.devenvModules.lua;
             };
-          in {
-            default = mkShell self.devenvModules.default;
-            python = mkShell self.devenvModules.python;
-            rust = mkShell self.devenvModules.rust;
-            go = mkShell self.devenvModules.go;
-            node = mkShell self.devenvModules.node;
-            full-stack = mkShell self.devenvModules.full-stack;
-            ai = mkShell self.devenvModules.ai;
-            android = mkShell self.devenvModules.android;
-            lua = mkShell self.devenvModules.lua;
-          };
         };
     };
 }

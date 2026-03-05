@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
   imports = [
     ../modules/jail.nix
   ];
@@ -9,7 +10,7 @@
     enable = true;
     uv.enable = true;
   };
-  packages = [ 
+  packages = [
     pkgs.ollama
     pkgs.aider-chat
   ];

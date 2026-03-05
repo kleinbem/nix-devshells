@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
   packages = [
     pkgs.android-tools
     pkgs.scrcpy
