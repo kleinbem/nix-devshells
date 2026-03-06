@@ -23,6 +23,7 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.devenv.flakeModule
+        inputs.treefmt-nix.flakeModule
       ];
       systems = [
         "x86_64-linux"
