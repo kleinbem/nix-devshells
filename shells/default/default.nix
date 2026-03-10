@@ -25,6 +25,7 @@
     pkgs.android-tools
     pkgs.yq-go
     pkgs.colmena
+    pkgs.openssl
   ];
   enterShell = ''
     echo "🤖 DevShell Loaded (Devenv)"
