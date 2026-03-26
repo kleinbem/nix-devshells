@@ -13,7 +13,6 @@
   };
 
   packages = [
-    pkgs.ollama
     pkgs.aider-chat
     pkgs.oterm
     pkgs.llm
@@ -24,10 +23,13 @@
     pkgs.glances
   ];
 
-  processes.ollama.exec = "ollama serve";
+  env = {
+    OPENAI_API_BASE = "http://localhost:4000/v1";
+    OPENAI_API_KEY = "sk-placeholder";
+  };
 
   enterShell = ''
-    echo "🤖 AI DevShell Loaded (Ollama Ready - 'devenv up' to start)"
+    echo "🤖 AI DevShell Loaded (LiteLLM @ localhost:4000)"
     echo "🛡️ Agent Sanctuary active: Use 'jail-exec <command>' to sandbox agents."
   '';
 }
