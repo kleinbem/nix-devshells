@@ -7,7 +7,9 @@
     deadnix.enable = true;
   };
   packages = [
-    pkgs.aider-chat
+    (pkgs.aider-chat.overridePythonAttrs (old: {
+      doCheck = false;
+    }))
     pkgs.statix
     pkgs.nixfmt
     pkgs.deadnix
@@ -26,6 +28,7 @@
     pkgs.yq-go
     pkgs.colmena
     pkgs.openssl
+    pkgs.vulnix
   ];
   enterShell = ''
     echo "🤖 DevShell Loaded (Devenv)"
