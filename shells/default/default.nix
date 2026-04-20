@@ -7,7 +7,7 @@
     deadnix.enable = true;
   };
   packages = [
-    (pkgs.aider-chat.overridePythonAttrs (old: {
+    (pkgs.aider-chat.overridePythonAttrs (_: {
       doCheck = false;
     }))
     pkgs.statix
@@ -28,11 +28,15 @@
     pkgs.yq-go
     pkgs.colmena
     pkgs.openssl
+    pkgs.trivy
     pkgs.vulnix
   ];
+  env = {
+    SSH_ASKPASS = "/run/current-system/sw/bin/lxqt-openssh-askpass";
+    SSH_ASKPASS_REQUIRE = "prefer";
+  };
+
   enterShell = ''
     echo "🤖 DevShell Loaded (Devenv)"
-    unset SSH_ASKPASS_REQUIRE
-    unset SSH_ASKPASS
   '';
 }
