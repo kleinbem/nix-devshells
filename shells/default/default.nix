@@ -10,8 +10,9 @@
     (pkgs.aider-chat.overridePythonAttrs (_: {
       doCheck = false;
     }))
+    pkgs.nix-doc
     pkgs.statix
-    pkgs.nixfmt
+    pkgs.nixfmt-rfc-style
     pkgs.deadnix
     pkgs.nil
     pkgs.sops
@@ -32,7 +33,7 @@
     pkgs.vulnix
   ];
   env = {
-    SSH_ASKPASS = "/run/current-system/sw/bin/lxqt-openssh-askpass";
+    SSH_ASKPASS = "${pkgs.lxqt.lxqt-openssh-askpass}/bin/lxqt-openssh-askpass";
     SSH_ASKPASS_REQUIRE = "prefer";
   };
 

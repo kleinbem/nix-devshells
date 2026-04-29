@@ -53,7 +53,23 @@
         let
           treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
             projectRootFile = "flake.nix";
-            programs.nixfmt.enable = true;
+            settings.global.excludes = [
+              "./.agent/**"
+              "./.devenv/**"
+              "./.direnv/**"
+              "flake.lock"
+              "*.zip"
+              "*.png"
+              "*.jpg"
+              "*.vscdb*"
+            ];
+            programs = {
+              nixfmt.enable = true;
+              statix.enable = true;
+              deadnix.enable = true;
+              shellcheck.enable = true;
+              shfmt.enable = true;
+            };
           };
         in
         {
