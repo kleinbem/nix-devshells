@@ -12,7 +12,7 @@
     }))
     pkgs.nix-doc
     pkgs.statix
-    pkgs.nixfmt-rfc-style
+    pkgs.nixfmt
     pkgs.deadnix
     pkgs.nil
     pkgs.sops
@@ -26,6 +26,7 @@
     pkgs.ripgrep
     pkgs.fzf
     pkgs.android-tools
+    pkgs.heimdall
     pkgs.yq-go
     pkgs.colmena
     pkgs.openssl

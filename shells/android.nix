@@ -2,6 +2,7 @@
 {
   packages = [
     pkgs.android-tools
+    pkgs.heimdall
     pkgs.scrcpy
     pkgs.jdk17
     pkgs.gradle
