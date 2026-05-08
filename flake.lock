@@ -852,6 +852,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-master": {
+      "locked": {
+        "lastModified": 1778157685,
+        "narHash": "sha256-3EFipbkwe9g3aB1A2J1NvK3qzK2hFwrQmByX9YnSyqY=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "6d9f1254ac1e66cdc23978ec37e5bd02e91b787e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "master",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs-src": {
       "flake": false,
       "locked": {
@@ -1050,6 +1066,7 @@
         "nix2container": "nix2container",
         "nixos-generators": "nixos-generators",
         "nixpkgs": "nixpkgs_7",
+        "nixpkgs-master": "nixpkgs-master",
         "pre-commit-hooks": "pre-commit-hooks_3",
         "rust-overlay": "rust-overlay_2",
         "treefmt-nix": "treefmt-nix_2"

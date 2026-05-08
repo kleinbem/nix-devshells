@@ -16,6 +16,7 @@
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
+    nixpkgs-master.url = "github:NixOS/nixpkgs/master";
   };
 
   outputs =
@@ -40,17 +41,27 @@
         node = ./shells/node.nix;
         full-stack = ./shells/full-stack.nix;
         ai = ./shells/ai.nix;
+        ai-dev = ./shells/ai-dev.nix;
+        pentest = ./shells/pentest.nix;
+        math = ./shells/math.nix;
+        media = ./shells/media.nix;
+        apps = ./shells/apps.nix;
         android = ./shells/android.nix;
         lua = ./shells/lua.nix;
         jail = ./modules/jail.nix;
       };
 
+      flake.homeManagerModules = {
+        desktopLaunchers = ./modules/home-manager.nix;
+      };
+
       perSystem =
-        {
-          pkgs,
-          ...
-        }:
+        { system, ... }:
         let
+          pkgs = import inputs.nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+          };
           treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
             projectRootFile = "flake.nix";
             settings.global.excludes = [
@@ -73,6 +84,8 @@
           };
         in
         {
+          _module.args.pkgs = pkgs;
+          _module.args.system = system;
           formatter = treefmtEval.config.build.wrapper;
 
           devenv.shells =
@@ -88,6 +101,7 @@
                 // {
                   # Pass inputs to the module arguments
                   _module.args.inputs = inputs;
+                  _module.args.system = system;
                 };
             in
             {
@@ -98,6 +112,11 @@
               node = mkShell self.devenvModules.node;
               full-stack = mkShell self.devenvModules.full-stack;
               ai = mkShell self.devenvModules.ai;
+              ai-dev = mkShell self.devenvModules.ai-dev;
+              pentest = mkShell self.devenvModules.pentest;
+              math = mkShell self.devenvModules.math;
+              media = mkShell self.devenvModules.media;
+              apps = mkShell self.devenvModules.apps;
               android = mkShell self.devenvModules.android;
               lua = mkShell self.devenvModules.lua;
             };
