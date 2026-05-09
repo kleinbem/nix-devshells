@@ -10,7 +10,10 @@
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
-    devenv.url = "github:cachix/devenv";
+    # FIXME: Temporary pin to bypass broken libghostty-vt requirement in devenv 2.1
+    devenv.url = "github:cachix/devenv/070577452d0c81d62168ef8b158ee4317ace7e21";
+    ghostty.url = "github:mitchellh/ghostty";
+    devenv.inputs.ghostty.follows = "ghostty";
     rust-overlay.url = "github:oxalica/rust-overlay";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     nix2container.url = "github:nlewo/nix2container";
@@ -23,7 +26,7 @@
     inputs@{ self, flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
-        inputs.devenv.flakeModule
+        inputs.devenv.flakeModules.default
         inputs.treefmt-nix.flakeModule
       ];
       systems = [
@@ -61,6 +64,11 @@
           pkgs = import inputs.nixpkgs {
             inherit system;
             config.allowUnfree = true;
+            overlays = [
+              (_: prev: {
+                libghostty-vt = (inputs.ghostty.packages.${system} or { }).libghostty-vt or prev.hello;
+              })
+            ];
           };
           treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
             projectRootFile = "flake.nix";
@@ -88,6 +96,16 @@
           _module.args.system = system;
           formatter = treefmtEval.config.build.wrapper;
 
+          devenv.modules = [
+            (_: {
+              overlays = [
+                (_: prev: {
+                  libghostty-vt = (inputs.ghostty.packages.${system} or { }).libghostty-vt or prev.hello;
+                })
+              ];
+            })
+          ];
+
           devenv.shells =
             let
               # Using hardcoded path for local development to avoid read-only store issues
@@ -100,8 +118,10 @@
                 }
                 // {
                   # Pass inputs to the module arguments
-                  _module.args.inputs = inputs;
-                  _module.args.system = system;
+                  _module.args = {
+                    inherit inputs system;
+                    libghostty-vt = pkgs.hello; # Use hello as a dummy package
+                  };
                 };
             in
             {

@@ -1,6 +1,6 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
-  env.DEV_SHELL_NAME = "media";
+  env.DEV_SHELL_NAME = lib.mkDefault "media";
 
   enterShell = ''
     echo "🎬 Media Production Shell Active"
