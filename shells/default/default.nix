@@ -32,6 +32,8 @@
     pkgs.openssl
     pkgs.trivy
     pkgs.vulnix
+    pkgs.nix-tree
+    pkgs.nix-diff
   ];
   env = {
     SSH_ASKPASS = "${pkgs.lxqt.lxqt-openssh-askpass}/bin/lxqt-openssh-askpass";

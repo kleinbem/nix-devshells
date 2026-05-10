@@ -17,7 +17,7 @@ in
   env.DEV_SHELL_NAME = lib.mkDefault "apps";
   env.STARSHIP_SHELL_SYMBOL = lib.mkDefault "🏢 ";
 
-  packages = [
+  packages = lib.filter (pkg: lib.meta.availableOn system pkg) [
     unfreePkgs.slack
     unfreePkgs.dbeaver-bin
     pkgs.bruno

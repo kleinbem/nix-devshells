@@ -51,6 +51,7 @@
         apps = ./shells/apps.nix;
         android = ./shells/android.nix;
         lua = ./shells/lua.nix;
+        arm = ./shells/arm.nix;
         jail = ./modules/jail.nix;
       };
 
@@ -139,6 +140,7 @@
               apps = mkShell self.devenvModules.apps;
               android = mkShell self.devenvModules.android;
               lua = mkShell self.devenvModules.lua;
+              arm = mkShell self.devenvModules.arm;
             };
         };
     };

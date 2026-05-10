@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  lib,
+  system,
+  ...
+}:
 {
   name = "ai-shell";
   imports = [
@@ -12,7 +17,7 @@
     uv.enable = true;
   };
 
-  packages = [
+  packages = lib.filter (pkg: lib.meta.availableOn system pkg) [
     pkgs.aider-chat
     pkgs.oterm
     pkgs.llm
