@@ -17,7 +17,7 @@ in
   env.DEV_SHELL_NAME = lib.mkDefault "ai-dev";
   env.STARSHIP_SHELL_SYMBOL = lib.mkDefault "🤖 ";
 
-  packages = lib.filter (pkg: lib.meta.availableOn system pkg) [
+  packages = [
     pkgsMaster.claude-code
     pkgs.github-copilot-cli
     pkgs.gemini-cli
