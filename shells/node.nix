@@ -6,7 +6,7 @@
     pnpm.enable = true;
   };
   languages.typescript.enable = true;
-  packages = [ pkgs.nodejs_20 ];
+  packages = [ pkgs.nodejs ];
   enterShell = ''
     echo "📦 Node DevShell Loaded"
   '';
