@@ -64,7 +64,10 @@
         let
           pkgs = import inputs.nixpkgs {
             inherit system;
-            config.allowUnfree = true;
+            config = {
+              allowUnfree = true;
+              android_sdk.accept_license = true;
+            };
             overlays = [
               (_: prev: {
                 libghostty-vt = (inputs.ghostty.packages.${system} or { }).libghostty-vt or prev.hello;
