@@ -20,6 +20,7 @@
     pkgs.age-plugin-yubikey
     inputs.nixos-generators.packages.${pkgs.stdenv.hostPlatform.system}.nixos-generate
     pkgs.just
+    pkgs.opentofu
     pkgs.lazygit
     pkgs.gh
     pkgs.jq
