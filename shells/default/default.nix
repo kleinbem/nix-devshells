@@ -1,6 +1,19 @@
 { pkgs, inputs, ... }:
 {
   name = "meta-default";
+  git-hooks.package =
+    (pkgs.writeShellScriptBin "prek" ''
+      cmd="$1"
+      if [ "$cmd" = "install" ]; then
+        shift
+        exec ${pkgs.prek}/bin/prek install --allow-missing-config "$@"
+      else
+        exec ${pkgs.prek}/bin/prek "$@"
+      fi
+    '')
+    // {
+      pname = "prek";
+    };
   git-hooks.hooks = {
     nixfmt.enable = true;
     statix.enable = true;
