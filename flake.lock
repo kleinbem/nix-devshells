@@ -877,11 +877,11 @@
     },
     "nixpkgs-master": {
       "locked": {
-        "lastModified": 1780005219,
-        "narHash": "sha256-R8dvsPSEB0ZBG4gfkpOx2MOYCdbmQU3xCjmPXw2jt9U=",
+        "lastModified": 1780017441,
+        "narHash": "sha256-7DXZXP0v6ttq1D0DTbawPH44QpPdLILh0KPzbpoBE84=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "001af4cb3abe18b4f13f9780b5ebc3dafb0b87e6",
+        "rev": "1bf4bf10292fce2e2a5b112d9289ae2fa720cca6",
         "type": "github"
       },
       "original": {
