@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# MIRROR OF: nix-presets/files/scripts/android/launch-android-desktop.sh
+# Do not edit here — modify the source and copy this file from there.
+
 
 # --- Android Launcher V6.6 (Input Stack Restoration) ---
 set -euo pipefail

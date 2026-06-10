@@ -15,9 +15,22 @@
       pname = "prek";
     };
   git-hooks.hooks = {
+    # Nix
     nixfmt.enable = true;
     statix.enable = true;
     deadnix.enable = true;
+    # Python — ruff (lint + format), and the parser regression suite.
+    ruff.enable = true;
+    ruff-format.enable = true;
+    pytest-nix-options = {
+      enable = true;
+      name = "pytest (_nix_options.py parsers)";
+      entry = "${pkgs.python3Packages.pytest}/bin/pytest nix-config/scripts/tests/ -q";
+      pass_filenames = false;
+      files = "\\.(py|nix)$";
+      language = "system";
+      stages = [ "pre-commit" ];
+    };
   };
   packages = [
     (pkgs.aider-chat.overridePythonAttrs (_: {

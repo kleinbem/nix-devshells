@@ -87,11 +87,18 @@
               "*.vscdb*"
             ];
             programs = {
+              # Nix
               nixfmt.enable = true;
               statix.enable = true;
               deadnix.enable = true;
+              # Shell
               shellcheck.enable = true;
               shfmt.enable = true;
+              # Python — ruff format only (black-compatible, applies automatically on
+              # `just maintenance::fmt`). The lint side (`ruff check`) is invoked on
+              # demand via `just maintenance::lint-python` so a 77-error backlog from
+              # legacy scripts doesn't block every format run.
+              ruff-format.enable = true;
             };
           };
         in
