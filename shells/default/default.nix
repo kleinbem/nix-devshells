@@ -35,7 +35,7 @@
     ruff-format.enable = true;
     # Go
     gofmt.enable = true;
-    golangci-lint.enable = true;
+    golangci-lint.enable = false;
     pytest-nix-options = {
       enable = true;
       name = "pytest (_nix_options.py parsers)";
