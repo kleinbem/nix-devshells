@@ -6,7 +6,18 @@
       cmd="$1"
       if [ "$cmd" = "install" ]; then
         shift
-        exec ${pkgs.prek}/bin/prek install --allow-missing-config "$@"
+        ${pkgs.prek}/bin/prek install --allow-missing-config "$@"
+        
+        # Auto-install into submodules so their hooks don't point to GC'd store paths
+        if [ -d .git/modules ]; then
+          for mod in .git/modules/*; do
+            mod_name=$(basename "$mod")
+            if [ -f "$mod_name/.pre-commit-config.yaml" ]; then
+              (cd "$mod_name" && ${pkgs.prek}/bin/prek install --allow-missing-config "$@" >/dev/null 2>&1 || true)
+            fi
+          done
+        fi
+        exit 0
       else
         exec ${pkgs.prek}/bin/prek "$@"
       fi
