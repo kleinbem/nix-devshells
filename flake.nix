@@ -39,6 +39,7 @@
       flake.devenvModules = {
         default = ./shells/default/default.nix;
         python = ./shells/python.nix;
+        nushell = ./shells/nushell.nix;
         rust = ./shells/rust.nix;
         go = ./shells/go.nix;
         node = ./shells/node.nix;
@@ -99,6 +100,8 @@
               # demand via `just maintenance::lint-python` so a 77-error backlog from
               # legacy scripts doesn't block every format run.
               ruff-format.enable = true;
+              # Go
+              gofmt.enable = true;
             };
           };
         in
@@ -138,6 +141,7 @@
             {
               default = mkShell self.devenvModules.default;
               python = mkShell self.devenvModules.python;
+              nushell = mkShell self.devenvModules.nushell;
               rust = mkShell self.devenvModules.rust;
               go = mkShell self.devenvModules.go;
               node = mkShell self.devenvModules.node;
