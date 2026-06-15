@@ -61,6 +61,10 @@
     inputs.nixos-generators.packages.${pkgs.stdenv.hostPlatform.system}.nixos-generate
     pkgs.just
     pkgs.opentofu
+    # VCS — jj is the primary verb in this workspace (see .just/jj.just).
+    # lazygit + gh kept for git operations jj doesn't cover (submodule
+    # pointer bumps in meta, PR/issue UX).
+    pkgs.jujutsu
     pkgs.lazygit
     pkgs.gh
     pkgs.jq
