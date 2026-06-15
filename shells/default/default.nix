@@ -65,8 +65,10 @@
     # lazygit + gh kept for git operations jj doesn't cover (submodule
     # pointer bumps in meta, PR/issue UX).
     pkgs.jujutsu
+    pkgs.lazyjj   # lazygit-style TUI for jj
     pkgs.lazygit
     pkgs.gh
+    pkgs.gh-dash  # TUI dashboard for PRs/issues across repos
     pkgs.jq
     pkgs.ripgrep
     pkgs.fzf
