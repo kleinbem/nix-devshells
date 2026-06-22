@@ -1,4 +1,5 @@
 {
+  lib,
   pkgs,
   inputs ? { },
   ...
@@ -10,8 +11,8 @@
   # Devenv root is the meta-workspace dir (parent of nix-devshells). When
   # this shell loads via `use flake ./nix-devshells#workspace` from the
   # meta root, devenv state still lives in the workspace, not under
-  # nix-devshells.
-  devenv.root = "/home/martin/Develop/github.com/kleinbem/nix";
+  # nix-devshells. mkForce because mkShell already sets devenv.root.
+  devenv.root = lib.mkForce "/home/martin/Develop/github.com/kleinbem/nix";
 
   env = {
     DEV_SHELL_NAME = "meta";

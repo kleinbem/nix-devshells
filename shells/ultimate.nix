@@ -15,7 +15,7 @@
     ./media.nix
   ];
 
-  devenv.root = "/home/martin/Develop/github.com/kleinbem/nix";
+  devenv.root = lib.mkForce "/home/martin/Develop/github.com/kleinbem/nix";
 
   _module.args.inputs = inputs;
   _module.args.system = system;
