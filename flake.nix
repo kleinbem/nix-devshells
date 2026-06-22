@@ -53,6 +53,8 @@
         android = ./shells/android.nix;
         lua = ./shells/lua.nix;
         arm = ./shells/arm.nix;
+        workspace = ./shells/workspace.nix;
+        ultimate = ./shells/ultimate.nix;
         jail = ./modules/jail.nix;
       };
 
@@ -155,6 +157,8 @@
               android = mkShell self.devenvModules.android;
               lua = mkShell self.devenvModules.lua;
               arm = mkShell self.devenvModules.arm;
+              workspace = mkShell self.devenvModules.workspace;
+              ultimate = mkShell self.devenvModules.ultimate;
             };
         };
     };
