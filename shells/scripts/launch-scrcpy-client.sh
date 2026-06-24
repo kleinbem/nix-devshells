@@ -2,7 +2,6 @@
 # MIRROR OF: nix-presets/files/scripts/android/launch-scrcpy-client.sh
 # Do not edit here — modify the source and copy this file from there.
 
-
 # Scrcpy Client - Connects to the running Daemon
 # Usage: launch-scrcpy-client
 
