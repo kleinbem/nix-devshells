@@ -77,40 +77,57 @@
               })
             ];
           };
+          # Shared formatter config (excludes + programs), reused by the
+          # per-flake formatter and the meta-workspace formatter below.
+          treefmtExcludes = [
+            "./.agent/**"
+            "./.devenv/**"
+            "./.direnv/**"
+            "flake.lock"
+            "*.zip"
+            "*.png"
+            "*.jpg"
+            "*.vscdb*"
+          ];
+          treefmtPrograms = {
+            # Nix
+            nixfmt.enable = true;
+            statix.enable = true;
+            deadnix.enable = true;
+            # Shell
+            shellcheck.enable = true;
+            shfmt.enable = true;
+            # Python — ruff format only (black-compatible, applies automatically on
+            # `just maintenance::fmt`). The lint side (`ruff check`) is invoked on
+            # demand via `just maintenance::lint-python` so a 77-error backlog from
+            # legacy scripts doesn't block every format run.
+            ruff-format.enable = true;
+            # Go
+            gofmt.enable = true;
+          };
           treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
             projectRootFile = "flake.nix";
-            settings.global.excludes = [
-              "./.agent/**"
-              "./.devenv/**"
-              "./.direnv/**"
-              "flake.lock"
-              "*.zip"
-              "*.png"
-              "*.jpg"
-              "*.vscdb*"
-            ];
-            programs = {
-              # Nix
-              nixfmt.enable = true;
-              statix.enable = true;
-              deadnix.enable = true;
-              # Shell
-              shellcheck.enable = true;
-              shfmt.enable = true;
-              # Python — ruff format only (black-compatible, applies automatically on
-              # `just maintenance::fmt`). The lint side (`ruff check`) is invoked on
-              # demand via `just maintenance::lint-python` so a 77-error backlog from
-              # legacy scripts doesn't block every format run.
-              ruff-format.enable = true;
-              # Go
-              gofmt.enable = true;
-            };
+            settings.global.excludes = treefmtExcludes;
+            programs = treefmtPrograms;
+          };
+          # Meta-workspace formatter: the meta root has no flake.nix (tooling-only
+          # orchestrator since the 2026-06-22 migration), so the default formatter
+          # can't run there. Anchor on repos.nix (exists only at the meta root).
+          # The sub-flakes are gitignored in the meta repo so treefmt's git walk
+          # skips them; the nix-*/ exclude is belt-and-suspenders. Consumed by the
+          # meta `just maintenance::{fmt,lint}` recipes via `nix run`.
+          treefmtEvalMeta = inputs.treefmt-nix.lib.evalModule pkgs {
+            projectRootFile = "repos.nix";
+            settings.global.excludes = treefmtExcludes ++ [ "nix-*/**" ];
+            programs = treefmtPrograms;
           };
         in
         {
           _module.args.pkgs = pkgs;
           _module.args.system = system;
           formatter = treefmtEval.config.build.wrapper;
+          # Runnable meta-workspace formatter: `nix run ./nix-devshells#formatter-meta -- [--fail-on-change]`
+          packages.formatter-meta = treefmtEvalMeta.config.build.wrapper;
 
           devenv.modules = [
             (_: {
