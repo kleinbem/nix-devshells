@@ -65,10 +65,10 @@
     # lazygit + gh kept for git operations jj doesn't cover (submodule
     # pointer bumps in meta, PR/issue UX).
     pkgs.jujutsu
-    pkgs.lazyjj   # lazygit-style TUI for jj
+    pkgs.lazyjj # lazygit-style TUI for jj
     pkgs.lazygit
     pkgs.gh
-    pkgs.gh-dash  # TUI dashboard for PRs/issues across repos
+    pkgs.gh-dash # TUI dashboard for PRs/issues across repos
     pkgs.jq
     pkgs.ripgrep
     pkgs.fzf
@@ -89,5 +89,23 @@
 
   enterShell = ''
     echo "🤖 DevShell Loaded (Devenv)"
+
+    # jj-first guard: this is a jj workspace (see .just/jj.just). Intercept the
+    # mutating git verbs that jj should own so an absent-minded `git commit`/
+    # `git push` doesn't bypass the jj history. Read-only git (status/log/diff),
+    # `git fetch`, and jj's own libgit2 calls are untouched — jj is a separate
+    # binary, not this function. One-off escape hatch: ALLOW_GIT=1 git <cmd>.
+    git() {
+      if [ -n "''${ALLOW_GIT:-}" ]; then command git "$@"; return; fi
+      case "''${1:-}" in
+        commit | push | pull | merge | rebase | reset | checkout | switch | cherry-pick | stash | am | revert)
+          echo "✋ jj-first workspace — use jj instead of 'git $1'." >&2
+          echo "   e.g.  git pull→jj git fetch ;  commit→jj commit ;  push→jj git push ;  checkout→jj new/edit" >&2
+          echo "   bypass once:  ALLOW_GIT=1 git $*" >&2
+          return 1
+          ;;
+        *) command git "$@" ;;
+      esac
+    }
   '';
 }
