@@ -2,7 +2,6 @@
 # MIRROR OF: nix-presets/files/scripts/android/launch-vault.sh
 # Do not edit here — modify the source and copy this file from there.
 
-
 # Vault Launcher - Persistent, secure Android environment
 # Usage: launch-vault [AVD_NAME] [EXTRA_FLAGS...]
 
