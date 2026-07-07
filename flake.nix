@@ -54,6 +54,7 @@
         lua = ./shells/lua.nix;
         arm = ./shells/arm.nix;
         workspace = ./shells/workspace.nix;
+        openwrt = ./shells/openwrt.nix;
         ultimate = ./shells/ultimate.nix;
         jail = ./modules/jail.nix;
       };
@@ -175,6 +176,7 @@
               lua = mkShell self.devenvModules.lua;
               arm = mkShell self.devenvModules.arm;
               workspace = mkShell self.devenvModules.workspace;
+              openwrt = mkShell self.devenvModules.openwrt;
               ultimate = mkShell self.devenvModules.ultimate;
             };
         };
