@@ -32,7 +32,15 @@ jobs:
         run: nix flake update
 
       - name: Validate flake (eval-only — blocks a bad lock from landing)
-        run: nix flake check --no-build
+        # Not `nix flake check --no-build`: devenv's task runner is fetched via
+        # IFD, and --no-build refuses to realize that drv ("path …-source.drv
+        # is not valid"). Plain eval may realize IFD, so eval every x86_64
+        # shell — the product of this flake — instead.
+        run: |
+          for shell in $(nix eval .#devShells.x86_64-linux --apply builtins.attrNames --json | jq -r '.[]'); do
+            echo "eval $shell"
+            nix eval ".#devShells.x86_64-linux.\"$shell\".drvPath" > /dev/null
+          done
 
       - name: Commit lockfile changes via GitHub API (verified signature)
         if: github.ref == 'refs/heads/main'

@@ -10,8 +10,7 @@
     git-hooks.inputs.nixpkgs.follows = "nixpkgs";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
-    # FIXME: Temporary pin to bypass broken libghostty-vt requirement in devenv 2.1
-    devenv.url = "github:cachix/devenv/070577452d0c81d62168ef8b158ee4317ace7e21";
+    devenv.url = "github:cachix/devenv";
     ghostty.url = "github:mitchellh/ghostty";
     devenv.inputs.ghostty.follows = "ghostty";
     rust-overlay.url = "github:oxalica/rust-overlay";
