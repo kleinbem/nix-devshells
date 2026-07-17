@@ -33,7 +33,8 @@
   '';
 
   packages = [
-    pkgs.claude-code
+    # claude-code comes from the user profile (nix-config home-manager);
+    # bleeding-edge copy lives in the ai-dev shell (pkgsMaster).
     pkgs.openssh
     (pkgs.python3.withPackages (
       p: with p; [
