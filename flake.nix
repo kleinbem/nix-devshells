@@ -142,7 +142,7 @@
           devenv.shells =
             let
               # Using hardcoded path for local development to avoid read-only store issues
-              localRoot = "/home/martin/Develop/github.com/kleinbem/nix/nix-devshells";
+              localRoot = "/home/martin/Develop/github.com/kleinbem/nix-devshells";
               mkShell =
                 module:
                 {
