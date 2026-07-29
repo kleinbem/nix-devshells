@@ -90,6 +90,30 @@
   enterShell = ''
     echo "🤖 DevShell Loaded (Devenv)"
 
+    # Put jj-fleet (the packaged status-all/diff-all/remote-status/... subset
+    # of the jj dashboard — see kleinbem/tools/jj-fleet.sh) on PATH directly,
+    # so it works as a bare command from inside ANY repo in the workspace,
+    # not just the three conductors that have a justfile wired to it. Finds
+    # the workspace root by walking up from $PWD looking for
+    # kleinbem/repos.nix (same marker jj-fleet.sh itself uses) — computed
+    # here at shell-start, not baked in as a flake input, specifically so
+    # this file stays identical across every machine/checkout location.
+    # Fails silently if not inside the workspace (e.g. this devshell reused
+    # by an unrelated project).
+    _jjfleet_root() {
+      local dir="$PWD"
+      while [ "$dir" != "/" ]; do
+        [ -f "$dir/kleinbem/repos.nix" ] && { printf '%s\n' "$dir"; return 0; }
+        dir="$(dirname "$dir")"
+      done
+      return 1
+    }
+    if _jjfleet_root_dir=$(_jjfleet_root) \
+      && _jjfleet_bin=$(nix build --no-link --print-out-paths "$_jjfleet_root_dir/kleinbem#jj-fleet" 2>/dev/null); then
+      export PATH="$_jjfleet_bin/bin:$PATH"
+    fi
+    unset -f _jjfleet_root
+
     # jj-first guard: this is a jj workspace (see .just/jj.just). Intercept the
     # mutating git verbs that jj should own so an absent-minded `git commit`/
     # `git push` doesn't bypass the jj history. Read-only git (status/log/diff),
