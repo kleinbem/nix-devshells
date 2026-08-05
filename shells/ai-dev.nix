@@ -24,6 +24,7 @@ in
     pkgs.fabric-ai
     pkgs.lmstudio
     pkgs.alpaca
+    (pkgs.callPackage ../pkgs/oh-my-pi { })
     (pkgs.python3Packages.llm.overridePythonAttrs (_: {
       doCheck = false;
       doInstallCheck = false;
