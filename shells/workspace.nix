@@ -45,6 +45,13 @@
         google-auth-oauthlib
       ]
     ))
+    # GCP bootstrap for nix/infra/google (2026-08-07): `gcloud auth login`,
+    # project/service-account setup for Terraform's own first credential,
+    # then ongoing `gcloud` use for anything the `google` Terraform provider
+    # doesn't cover. Scoped to this shell (not the shared default/default.nix
+    # every meta-workspace inherits, incl. openwrt) since it's nix-specific
+    # and a heavy package — no reason to pull it into unrelated shells.
+    pkgs.google-cloud-sdk
   ];
 
   tasks."workspace:health" = {
