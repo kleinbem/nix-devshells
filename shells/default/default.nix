@@ -45,6 +45,33 @@
       language = "system";
       stages = [ "pre-commit" ];
     };
+    version-consistency = {
+      enable = true;
+      name = "Check version consistency";
+      description = "Warn if same version pattern appears in multiple files being committed";
+      entry = "${pkgs.writeShellScript "check-version-consistency" ''
+        set -e
+        staged_files=$(git diff --cached --name-only 2>/dev/null || true)
+        [ -z "$$staged_files" ] && exit 0
+
+        # Extract version patterns: platformToolsVersion, androidVersion, etc.
+        # Report if the same version string is being changed in multiple files
+        versions=$(echo "$$staged_files" | xargs grep -h -E '\b(platformTools|android|rust|python)Version\s*=' 2>/dev/null | sed -E 's/.*\b([a-zA-Z]+Version)\s*=\s*"?([^"]+)"?.*/\1=\2/' | sort || true)
+
+        echo "$$versions" | uniq -d | while read dup_line; do
+          if [ -n "$$dup_line" ]; then
+            echo "⚠️  Version drift detected: $dup_line appears in multiple staged files"
+            echo "     Review your commits for consistency before pushing"
+            exit 1
+          fi
+        done
+        exit 0
+      ''}";
+      language = "system";
+      pass_filenames = false;
+      files = "\\.(nix|py)$";
+      stages = [ "pre-commit" ];
+    };
   };
   packages = [
     (pkgs.aider-chat.overridePythonAttrs (_: {
