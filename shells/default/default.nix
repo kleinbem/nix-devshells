@@ -1,6 +1,26 @@
-{ pkgs, inputs, ... }:
+{
+  pkgs,
+  inputs,
+  lib,
+  ...
+}:
 {
   name = "meta-default";
+
+  # devenv's git-hooks integration adds a `devenv:git-hooks:run` task
+  # (`prek run -a`). It's declared `before devenv:enterTest`, but
+  # devenv-tasks runs every start-enabled task on `enterShell` too, so it
+  # fires on every direnv load / `cd`. Unlike `devenv:git-hooks:install`
+  # (guarded with `git rev-parse --git-dir`) the run task has no git-repo
+  # guard: when this shell is entered through the deliberately-non-git meta
+  # root `~/Develop/github.com/kleinbem/.envrc` (see root CLAUDE.md), `prek`
+  # aborts with "fatal: not a git repository" and fails the whole direnv
+  # load. Hooks are still installed as a real pre-commit hook by
+  # `devenv:git-hooks:install` and run at commit time and in CI, so make
+  # the shell-entry invocation a no-op.
+  tasks."devenv:git-hooks:run".exec = lib.mkForce ''
+    exit 0
+  '';
   git-hooks.package =
     (pkgs.writeShellScriptBin "prek" ''
       cmd="$1"
