@@ -59,7 +59,18 @@
     pytest-nix-options = {
       enable = true;
       name = "pytest (_nix_options.py parsers)";
-      entry = "${pkgs.python3Packages.pytest}/bin/pytest nix-config/scripts/tests/ -q";
+      # Self-locating: this hook is installed via the shared "meta-default"
+      # shell into whatever repo's .git/hooks/pre-commit invokes it, so cwd
+      # varies — nix-config itself (scripts/tests is right there) vs a
+      # workspace-root-style invocation where nix-config is a child dir.
+      # No-op where neither exists (repos this hook doesn't apply to).
+      entry = "${pkgs.writeShellScript "pytest-nix-options" ''
+        if [ -d scripts/tests ]; then
+          exec ${pkgs.python3Packages.pytest}/bin/pytest scripts/tests/ -q
+        elif [ -d nix-config/scripts/tests ]; then
+          exec ${pkgs.python3Packages.pytest}/bin/pytest nix-config/scripts/tests/ -q
+        fi
+      ''}";
       pass_filenames = false;
       files = "\\.(py|nix)$";
       language = "system";
