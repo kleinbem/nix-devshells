@@ -133,7 +133,9 @@
     pkgs.android-tools
     pkgs.heimdall
     pkgs.yq-go
-    pkgs.colmena
+    # Tracks colmena's main branch, not nixpkgs' packaged v0.4.0 (frozen
+    # since 2023-05-15) — see flake.nix's colmena input for why.
+    inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena
     pkgs.openssl
     pkgs.trivy
     pkgs.vulnix

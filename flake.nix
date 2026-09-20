@@ -19,6 +19,13 @@
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
     nixpkgs-master.url = "github:NixOS/nixpkgs/master";
+    # Tracks colmena's main branch instead of nixpkgs' packaged v0.4.0 (tagged
+    # 2023-05-15, ~3 years stale) — the project itself is still actively
+    # developed (commits within days), just without a new release tag. Not
+    # `follows`-ing nixpkgs: colmena pins its own compatible nixpkgs version
+    # for its build, and following ours risks a mismatch the maintainers
+    # haven't tested against.
+    colmena.url = "github:nix-community/colmena";
   };
 
   outputs =
