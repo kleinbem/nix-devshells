@@ -4,6 +4,18 @@
   lib,
   ...
 }:
+let
+  # Python *applications* packaged as libraries (aider, vulnix) propagate a
+  # bare python3 + their deps onto PATH/PYTHONPATH ahead of the shells' own
+  # python3.withPackages, so `python3` silently loses e.g. pyyaml. Expose only
+  # their self-wrapped bin/ instead.
+  binOnly =
+    pkg:
+    pkgs.runCommand "${pkg.pname or pkg.name}-bin" { } ''
+      mkdir -p $out/bin
+      ln -s ${pkg}/bin/* $out/bin/
+    '';
+in
 {
   name = "meta-default";
 
@@ -105,9 +117,11 @@
     };
   };
   packages = [
-    (pkgs.aider-chat.overridePythonAttrs (_: {
-      doCheck = false;
-    }))
+    (binOnly (
+      pkgs.aider-chat.overridePythonAttrs (_: {
+        doCheck = false;
+      })
+    ))
     pkgs.nix-doc
     pkgs.statix
     pkgs.nixfmt
@@ -138,7 +152,7 @@
     inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena
     pkgs.openssl
     pkgs.trivy
-    pkgs.vulnix
+    (binOnly pkgs.vulnix)
     pkgs.nix-tree
     pkgs.nix-diff
   ];

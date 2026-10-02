@@ -43,6 +43,7 @@
         requests
         google-api-python-client
         google-auth-oauthlib
+        pyyaml # nix-config/scripts/generate-infra-yaml.py (sync-agent)
       ]
     ))
     # GCP bootstrap for nix/infra/google (2026-08-07): `gcloud auth login`,
