@@ -18,7 +18,7 @@
   };
 
   packages = lib.filter (pkg: lib.meta.availableOn system pkg) [
-    pkgs.aider-chat
+    (pkgs.callPackage ../pkgs/aider-chat { })
     pkgs.oterm
     pkgs.llm
     pkgs.fabric-ai

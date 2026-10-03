@@ -117,11 +117,9 @@ in
     };
   };
   packages = [
-    (binOnly (
-      pkgs.aider-chat.overridePythonAttrs (_: {
-        doCheck = false;
-      })
-    ))
+    # Tests stay on: they're what catches aider/litellm drift like
+    # nixpkgs#569679, which doCheck = false shipped as a runtime crash.
+    (binOnly (pkgs.callPackage ../../pkgs/aider-chat { }))
     pkgs.nix-doc
     pkgs.statix
     pkgs.nixfmt
