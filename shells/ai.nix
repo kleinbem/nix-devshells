@@ -1,7 +1,6 @@
 {
   pkgs,
   lib,
-  system,
   ...
 }:
 {
@@ -17,7 +16,7 @@
     uv.enable = true;
   };
 
-  packages = lib.filter (pkg: lib.meta.availableOn system pkg) [
+  packages = lib.filter (pkg: lib.meta.availableOn pkgs.stdenv.hostPlatform pkg) [
     (pkgs.callPackage ../pkgs/aider-chat { })
     pkgs.oterm
     pkgs.llm
