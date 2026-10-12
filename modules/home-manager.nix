@@ -14,7 +14,7 @@ in
     enable = mkEnableOption "desktop launchers for devshells";
     flakePath = mkOption {
       type = types.str;
-      default = "/home/martin/Develop/github.com/kleinbem/nix";
+      default = "/home/martin/Develop/github.com/kleinbem/nix-devshells";
       description = "Path to the root flake containing the devshells";
     };
   };
@@ -25,7 +25,7 @@ in
       qbittorrent-devshell = {
         name = "qBittorrent (DevShell)";
         genericName = "BitTorrent Client";
-        exec = "\"nix develop ${cfg.flakePath}#apps -c qbittorrent %U\"";
+        exec = "nix develop ${cfg.flakePath}#apps -c qbittorrent %U";
         terminal = false;
         categories = [
           "Network"
@@ -37,7 +37,7 @@ in
       slack-devshell = {
         name = "Slack (DevShell)";
         genericName = "Messaging";
-        exec = "\"nix develop ${cfg.flakePath}#apps -c slack %U\"";
+        exec = "nix develop ${cfg.flakePath}#apps -c slack %U";
         terminal = false;
         categories = [
           "Network"
@@ -48,7 +48,7 @@ in
       dbeaver-devshell = {
         name = "DBeaver (DevShell)";
         genericName = "Universal Database Tool";
-        exec = "\"nix develop ${cfg.flakePath}#apps -c dbeaver\"";
+        exec = "nix develop ${cfg.flakePath}#apps -c dbeaver";
         terminal = false;
         categories = [
           "Development"
@@ -59,7 +59,7 @@ in
       bruno-devshell = {
         name = "Bruno (DevShell)";
         genericName = "API Client";
-        exec = "\"nix develop ${cfg.flakePath}#apps -c bruno %U\"";
+        exec = "nix develop ${cfg.flakePath}#apps -c bruno %U";
         terminal = false;
         categories = [ "Development" ];
         icon = "bruno";
@@ -67,7 +67,7 @@ in
       github-desktop-devshell = {
         name = "GitHub Desktop (DevShell)";
         genericName = "Git GUI";
-        exec = "\"nix develop ${cfg.flakePath}#apps -c github-desktop %U\"";
+        exec = "nix develop ${cfg.flakePath}#apps -c github-desktop %U";
         terminal = false;
         categories = [
           "Development"
@@ -78,7 +78,7 @@ in
       rustdesk-devshell = {
         name = "RustDesk (DevShell)";
         genericName = "Remote Desktop";
-        exec = "\"nix develop ${cfg.flakePath}#apps -c rustdesk\"";
+        exec = "nix develop ${cfg.flakePath}#apps -c rustdesk";
         terminal = false;
         categories = [
           "Network"
@@ -86,12 +86,23 @@ in
         ];
         icon = "rustdesk";
       };
+      ente-auth-devshell = {
+        name = "Ente Auth (DevShell)";
+        genericName = "2FA Authenticator";
+        exec = "nix develop ${cfg.flakePath}#apps -c enteauth %U";
+        terminal = false;
+        categories = [
+          "Utility"
+          "Security"
+        ];
+        icon = "enteauth";
+      };
 
       # --- Pentest Shell ---
       wireshark-devshell = {
         name = "Wireshark (DevShell)";
         genericName = "Network Analyzer";
-        exec = "\"nix develop ${cfg.flakePath}#pentest -c wireshark %f\"";
+        exec = "nix develop ${cfg.flakePath}#pentest -c wireshark %f";
         terminal = false;
         categories = [
           "System"
@@ -102,7 +113,7 @@ in
       burpsuite-devshell = {
         name = "Burp Suite (DevShell)";
         genericName = "Web Security Testing";
-        exec = "\"nix develop ${cfg.flakePath}#pentest -c burpsuite\"";
+        exec = "nix develop ${cfg.flakePath}#pentest -c burpsuite";
         terminal = false;
         categories = [
           "Development"
@@ -113,7 +124,7 @@ in
       zenmap-devshell = {
         name = "Zenmap (DevShell)";
         genericName = "Network Mapper";
-        exec = "\"nix develop ${cfg.flakePath}#pentest -c zenmap\"";
+        exec = "nix develop ${cfg.flakePath}#pentest -c zenmap";
         terminal = false;
         categories = [
           "System"
@@ -125,7 +136,7 @@ in
       chromium-pentest = {
         name = "Chromium (Pentest)";
         genericName = "Web Browser";
-        exec = "\"nix develop ${cfg.flakePath}#pentest -c chromium %U\"";
+        exec = "nix develop ${cfg.flakePath}#pentest -c chromium %U";
         terminal = false;
         categories = [
           "Network"
@@ -136,7 +147,7 @@ in
       zap-devshell = {
         name = "OWASP ZAP (DevShell)";
         genericName = "Web App Scanner";
-        exec = "\"nix develop ${cfg.flakePath}#pentest -c zaproxy\"";
+        exec = "nix develop ${cfg.flakePath}#pentest -c zaproxy";
         terminal = false;
         categories = [
           "Development"
@@ -149,7 +160,7 @@ in
       lmstudio-devshell = {
         name = "LM Studio (DevShell)";
         genericName = "Local AI Models";
-        exec = "\"nix develop ${cfg.flakePath}#ai-dev -c lmstudio %U\"";
+        exec = "nix develop ${cfg.flakePath}#ai-dev -c lmstudio %U";
         terminal = false;
         categories = [ "Development" ];
         icon = "lmstudio";
@@ -159,7 +170,7 @@ in
       obs-studio-devshell = {
         name = "OBS Studio (DevShell)";
         genericName = "Streaming and Recording";
-        exec = "\"nix develop ${cfg.flakePath}#media -c obs\"";
+        exec = "nix develop ${cfg.flakePath}#media -c obs";
         terminal = false;
         categories = [
           "AudioVideo"

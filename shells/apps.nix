@@ -24,6 +24,7 @@ in
     pkgs.github-desktop
     pkgs.rustdesk-flutter
     pkgs.qbittorrent
+    pkgs.ente-auth
     # Moved from base DX suite
     pkgs.gnome-builder
     pkgs.podman-desktop
