@@ -1,16 +1,8 @@
 {
   pkgs,
   lib,
-  inputs,
-  system,
   ...
 }:
-let
-  unfreePkgs = import inputs.nixpkgs {
-    inherit system;
-    config.allowUnfree = true;
-  };
-in
 {
   imports = [ ./common.nix ];
 
@@ -18,8 +10,8 @@ in
   env.STARSHIP_SHELL_SYMBOL = lib.mkDefault "🏢 ";
 
   packages = lib.filter (pkg: lib.meta.availableOn pkgs.stdenv.hostPlatform pkg) [
-    unfreePkgs.slack
-    unfreePkgs.dbeaver-bin
+    pkgs.slack
+    pkgs.dbeaver-bin
     pkgs.bruno
     pkgs.github-desktop
     pkgs.rustdesk-flutter

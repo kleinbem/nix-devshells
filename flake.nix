@@ -26,6 +26,7 @@
     # for its build, and following ours risks a mismatch the maintainers
     # haven't tested against.
     colmena.url = "github:nix-community/colmena";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
   };
 
   outputs =
@@ -63,6 +64,7 @@
         openwrt = ./shells/openwrt.nix;
         ultimate = ./shells/ultimate.nix;
         jail = ./modules/jail.nix;
+        parking = ./shells/parking.nix;
       };
 
       flake.homeManagerModules = {
@@ -72,6 +74,7 @@
       perSystem =
         { system, ... }:
         let
+          fallbacksOverlay = import ./fallbacks.nix { inherit inputs system; };
           pkgs = import inputs.nixpkgs {
             inherit system;
             config = {
@@ -82,6 +85,7 @@
               (_: prev: {
                 libghostty-vt = (inputs.ghostty.packages.${system} or { }).libghostty-vt or prev.hello;
               })
+              fallbacksOverlay
             ];
           };
           # Shared formatter config (excludes + programs), reused by the
@@ -133,8 +137,25 @@
           _module.args.pkgs = pkgs;
           _module.args.system = system;
           formatter = treefmtEval.config.build.wrapper;
-          # Runnable meta-workspace formatter: `nix run ./nix-devshells#formatter-meta -- [--fail-on-change]`
-          packages.formatter-meta = treefmtEvalMeta.config.build.wrapper;
+          packages = {
+            # Runnable meta-workspace formatter: `nix run ./nix-devshells#formatter-meta -- [--fail-on-change]`
+            formatter-meta = treefmtEvalMeta.config.build.wrapper;
+
+            # Decoupled standalone app packages (for direct launchers & isolated runs)
+            inherit (pkgs)
+              slack
+              bruno
+              qbittorrent
+              wireshark
+              burpsuite
+              zenmap
+              zap
+              ;
+            inherit (pkgs) "github-desktop" "ente-auth";
+            dbeaver = pkgs.dbeaver-bin;
+            rustdesk = pkgs.rustdesk-flutter;
+            obs = pkgs.obs-studio;
+          };
 
           devenv.modules = [
             (_: {
@@ -142,6 +163,7 @@
                 (_: prev: {
                   libghostty-vt = (inputs.ghostty.packages.${system} or { }).libghostty-vt or prev.hello;
                 })
+                fallbacksOverlay
               ];
             })
           ];
@@ -184,6 +206,7 @@
               workspace = mkShell self.devenvModules.workspace;
               openwrt = mkShell self.devenvModules.openwrt;
               ultimate = mkShell self.devenvModules.ultimate;
+              parking = mkShell self.devenvModules.parking;
             };
         };
     };
