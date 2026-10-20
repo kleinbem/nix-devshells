@@ -62,6 +62,7 @@
         arm = ./shells/arm.nix;
         workspace = ./shells/workspace.nix;
         openwrt = ./shells/openwrt.nix;
+        esphome = ./shells/esphome.nix;
         ultimate = ./shells/ultimate.nix;
         jail = ./modules/jail.nix;
         parking = ./shells/parking.nix;
@@ -205,6 +206,7 @@
               arm = mkShell self.devenvModules.arm;
               workspace = mkShell self.devenvModules.workspace;
               openwrt = mkShell self.devenvModules.openwrt;
+              esphome = mkShell self.devenvModules.esphome;
               ultimate = mkShell self.devenvModules.ultimate;
               parking = mkShell self.devenvModules.parking;
             };
