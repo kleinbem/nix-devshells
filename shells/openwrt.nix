@@ -53,6 +53,15 @@
     # Utilities
     jq
     tree
+
+    # Device recovery / bench work (openwrt-builder images onto real boards).
+    # nmrpflash: Netgear NMRP recovery flasher — the install + revert path for
+    # the Orbi RBR50/RBS50 units. inetutils: telnet for stock/Voxel firmware
+    # (debug.htm) and OpenWrt failsafe. picocom: UART console (BPI-R4 + Orbi
+    # J01 header, 115200 8N1).
+    nmrpflash
+    inetutils
+    picocom
   ];
 
   enterShell = ''
