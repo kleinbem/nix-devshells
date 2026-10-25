@@ -184,6 +184,16 @@ in
       && _jjfleet_bin=$(nix build --no-link --print-out-paths "$_jjfleet_root_dir/kleinbem#jj-fleet" 2>/dev/null); then
       export PATH="$_jjfleet_bin/bin:$PATH"
     fi
+    # The fleet's single-repo tools (kleinbem/jj-toolbox, kleinbem/nix-toolbox)
+    # from their checkouts next to kleinbem/, when present.
+    if [ -n "''${_jjfleet_root_dir:-}" ]; then
+      for _toolbox in jj-toolbox nix-toolbox; do
+        if [ -d "$_jjfleet_root_dir/$_toolbox/bin" ]; then
+          export PATH="$_jjfleet_root_dir/$_toolbox/bin:$PATH"
+        fi
+      done
+      unset _toolbox
+    fi
     unset -f _jjfleet_root
 
     # jj-first guard: this is a jj workspace (see .just/jj.just). Intercept the
