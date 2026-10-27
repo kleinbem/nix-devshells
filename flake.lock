@@ -319,6 +319,29 @@
         "type": "github"
       }
     },
+    "nix-holds": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixpkgs-stable": [
+          "nixpkgs-stable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793142553,
+        "narHash": "sha256-Yy7DePqvVDBZvecf9LSrUnwEU0RdO0W6hNRnDKIise4=",
+        "owner": "kleinbem",
+        "repo": "nix-holds",
+        "rev": "3c2fa9f749f5d974babdae6ffa1ba9a67f0cf06b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kleinbem",
+        "repo": "nix-holds",
+        "type": "github"
+      }
+    },
     "nix2container": {
       "inputs": {
         "nixpkgs": [
@@ -537,6 +560,7 @@
         "ghostty": "ghostty",
         "git-hooks": "git-hooks_2",
         "mk-shell-bin": "mk-shell-bin",
+        "nix-holds": "nix-holds",
         "nix2container": "nix2container",
         "nixos-generators": "nixos-generators",
         "nixpkgs": "nixpkgs_4",
