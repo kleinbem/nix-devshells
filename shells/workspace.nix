@@ -53,6 +53,8 @@
     # every meta-workspace inherits, incl. openwrt) since it's nix-specific
     # and a heavy package — no reason to pull it into unrelated shells.
     pkgs.google-cloud-sdk
+    # Manual push/pin to the kleinbem-nixpkgs-review cache; CI pushes on its own.
+    pkgs.cachix
   ];
 
   tasks."workspace:health" = {
