@@ -5,6 +5,15 @@
   ...
 }:
 
+let
+  # Expose just the named binaries of a package that also ships a server.
+  clisOf =
+    pkg: bins:
+    pkgs.runCommand "${pkg.pname or pkg.name}-clis" { } ''
+      mkdir -p $out/bin
+      ${lib.concatMapStrings (b: "ln -s ${lib.getExe' pkg b} $out/bin/\n") bins}
+    '';
+in
 {
   imports = [ ./default/default.nix ];
 
@@ -55,6 +64,26 @@
     pkgs.google-cloud-sdk
     # Manual push/pin to the kleinbem-nixpkgs-review cache; CI pushes on its own.
     pkgs.cachix
+
+    # One CLI per app/service the fleet runs, so agents drive them through
+    # Bash instead of MCP. garage, ntfy, netbird, buzz and rbw (Vaultwarden)
+    # already come from the system/user profile.
+    pkgs.attic-client
+    pkgs.home-assistant-cli # hass-cli
+    pkgs.grafanactl
+    pkgs.cloudflared
+    pkgs.flarectl
+    pkgs.wrangler # Cloudflare Pages
+    pkgs.stalwart-cli
+    pkgs.ente-cli
+    pkgs.qbittorrent-cli # qbt
+    # Server packages that ship the client: keep only the client on PATH.
+    (clisOf pkgs.grafana-loki [ "logcli" ])
+    (clisOf pkgs.prometheus-alertmanager [ "amtool" ])
+    (clisOf pkgs.postgresql [ "psql" ]) # dev-db and service databases
+    pkgs.syncthing # `syncthing cli` against a remote GUI address
+    pkgs.ollama # client via OLLAMA_HOST
+    pkgs.caddy # caddy validate/fmt/adapt
   ];
 
   tasks."workspace:health" = {
