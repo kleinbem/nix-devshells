@@ -16,19 +16,24 @@ let
 
   # hass-cli against hass-pi. The token (HA user `cli`) is a sops secret on
   # nixos-nvme, read per call so it never sits in the shell environment, and
-  # only when the call goes to hass-pi: an explicit HASS_SERVER or --server
-  # gets no token, and neither does --debug (it logs the request headers).
-  # HASS_TOKEN or HASSIO_TOKEN still override.
+  # only when the call goes to hass-pi: an explicit server (HASS_SERVER,
+  # HOMEASSISTANT_SERVER, --server) gets no token, and neither does debug mode
+  # (--debug or HOMEASSISTANT_DEBUG; it logs the request headers). A token the
+  # caller set (HASS_TOKEN, HASSIO_TOKEN, HOMEASSISTANT_TOKEN, --token) wins.
+  # hass-cli's click options also read HOMEASSISTANT_<OPTION>, after HASS_*.
   hass-cli = pkgs.writeShellApplication {
     name = "hass-cli";
     text = ''
       own=1
-      [ -n "''${HASS_SERVER:-}" ] && own=0
+      [ -n "''${HASS_SERVER:-}''${HOMEASSISTANT_SERVER:-}" ] && own=0
+      [ -n "''${HOMEASSISTANT_DEBUG:-}" ] && own=0
       for a in "$@"; do
-        case "$a" in -s | --server | --server=* | --debug) own=0 ;; esac
+        case "$a" in -s | --server | --server=* | --debug | --token | --token=*) own=0 ;; esac
       done
-      export HASS_SERVER="''${HASS_SERVER:-http://10.0.0.21:8123}"
-      if [ "$own" = 1 ] && [ -z "''${HASS_TOKEN:-}''${HASSIO_TOKEN:-}" ] && [ -r /run/secrets/hass_cli_token ]; then
+      if [ -z "''${HASS_SERVER:-}''${HOMEASSISTANT_SERVER:-}" ]; then
+        export HASS_SERVER=http://10.0.0.21:8123
+      fi
+      if [ "$own" = 1 ] && [ -z "''${HASS_TOKEN:-}''${HASSIO_TOKEN:-}''${HOMEASSISTANT_TOKEN:-}" ] && [ -r /run/secrets/hass_cli_token ]; then
         HASS_TOKEN="$(< /run/secrets/hass_cli_token)"
         export HASS_TOKEN
       fi
