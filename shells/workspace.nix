@@ -13,6 +13,33 @@ let
       mkdir -p $out/bin
       ${lib.concatMapStrings (b: "ln -s ${lib.getExe' pkg b} $out/bin/\n") bins}
     '';
+
+  # hass-cli against hass-pi. The token (HA user `cli`) is a sops secret on
+  # nixos-nvme, read per call so it never sits in the shell environment, and
+  # only when the call goes to hass-pi: an explicit server (HASS_SERVER,
+  # HOMEASSISTANT_SERVER, --server) gets no token, and neither does debug mode
+  # (--debug or HOMEASSISTANT_DEBUG; it logs the request headers). A token the
+  # caller set (HASS_TOKEN, HASSIO_TOKEN, HOMEASSISTANT_TOKEN, --token) wins.
+  # hass-cli's click options also read HOMEASSISTANT_<OPTION>, after HASS_*.
+  hass-cli = pkgs.writeShellApplication {
+    name = "hass-cli";
+    text = ''
+      own=1
+      [ -n "''${HASS_SERVER:-}''${HOMEASSISTANT_SERVER:-}" ] && own=0
+      [ -n "''${HOMEASSISTANT_DEBUG:-}" ] && own=0
+      for a in "$@"; do
+        case "$a" in -s | --server | --server=* | --debug | --token | --token=*) own=0 ;; esac
+      done
+      if [ -z "''${HASS_SERVER:-}''${HOMEASSISTANT_SERVER:-}" ]; then
+        export HASS_SERVER=http://10.0.0.21:8123
+      fi
+      if [ "$own" = 1 ] && [ -z "''${HASS_TOKEN:-}''${HASSIO_TOKEN:-}''${HOMEASSISTANT_TOKEN:-}" ] && [ -r /run/secrets/hass_cli_token ]; then
+        HASS_TOKEN="$(< /run/secrets/hass_cli_token)"
+        export HASS_TOKEN
+      fi
+      exec ${lib.getExe pkgs.home-assistant-cli} "$@"
+    '';
+  };
 in
 {
   imports = [ ./default/default.nix ];
@@ -69,7 +96,7 @@ in
     # Bash instead of MCP. garage, ntfy, netbird, buzz and rbw (Vaultwarden)
     # already come from the system/user profile.
     pkgs.attic-client
-    pkgs.home-assistant-cli # hass-cli
+    hass-cli
     pkgs.grafanactl
     pkgs.cloudflared
     pkgs.flarectl
