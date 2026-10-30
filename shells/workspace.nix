@@ -13,6 +13,28 @@ let
       mkdir -p $out/bin
       ${lib.concatMapStrings (b: "ln -s ${lib.getExe' pkg b} $out/bin/\n") bins}
     '';
+
+  # hass-cli against hass-pi. The token (HA user `cli`) is a sops secret on
+  # nixos-nvme, read per call so it never sits in the shell environment, and
+  # only when the call goes to hass-pi: an explicit HASS_SERVER or --server
+  # gets no token, and neither does --debug (it logs the request headers).
+  # HASS_TOKEN or HASSIO_TOKEN still override.
+  hass-cli = pkgs.writeShellApplication {
+    name = "hass-cli";
+    text = ''
+      own=1
+      [ -n "''${HASS_SERVER:-}" ] && own=0
+      for a in "$@"; do
+        case "$a" in -s | --server | --server=* | --debug) own=0 ;; esac
+      done
+      export HASS_SERVER="''${HASS_SERVER:-http://10.0.0.21:8123}"
+      if [ "$own" = 1 ] && [ -z "''${HASS_TOKEN:-}''${HASSIO_TOKEN:-}" ] && [ -r /run/secrets/hass_cli_token ]; then
+        HASS_TOKEN="$(< /run/secrets/hass_cli_token)"
+        export HASS_TOKEN
+      fi
+      exec ${lib.getExe pkgs.home-assistant-cli} "$@"
+    '';
+  };
 in
 {
   imports = [ ./default/default.nix ];
@@ -69,7 +91,7 @@ in
     # Bash instead of MCP. garage, ntfy, netbird, buzz and rbw (Vaultwarden)
     # already come from the system/user profile.
     pkgs.attic-client
-    pkgs.home-assistant-cli # hass-cli
+    hass-cli
     pkgs.grafanactl
     pkgs.cloudflared
     pkgs.flarectl
