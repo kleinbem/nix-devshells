@@ -29,7 +29,7 @@
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
     # Packages the fleet holds back from nixos-unstable while they're broken
     # there (kleinbem/nix-holds-fleet); replaces the old fallbacks.nix overlay.
-    nix-holds = {
+    nix-holds-fleet = {
       url = "github:kleinbem/nix-holds-fleet";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nixpkgs-stable.follows = "nixpkgs-stable";
@@ -92,7 +92,7 @@
               (_: prev: {
                 libghostty-vt = (inputs.ghostty.packages.${system} or { }).libghostty-vt or prev.hello;
               })
-              inputs.nix-holds.overlays.default
+              inputs.nix-holds-fleet.overlays.default
             ];
           };
           # Shared formatter config (excludes + programs), reused by the
@@ -170,7 +170,7 @@
                 (_: prev: {
                   libghostty-vt = (inputs.ghostty.packages.${system} or { }).libghostty-vt or prev.hello;
                 })
-                inputs.nix-holds.overlays.default
+                inputs.nix-holds-fleet.overlays.default
               ];
             })
           ];
