@@ -28,9 +28,9 @@
     colmena.url = "github:nix-community/colmena";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
     # Packages the fleet holds back from nixos-unstable while they're broken
-    # there (kleinbem/nix-holds); replaces the old fallbacks.nix overlay.
+    # there (kleinbem/nix-holds-fleet); replaces the old fallbacks.nix overlay.
     nix-holds = {
-      url = "github:kleinbem/nix-holds";
+      url = "github:kleinbem/nix-holds-fleet";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nixpkgs-stable.follows = "nixpkgs-stable";
     };
