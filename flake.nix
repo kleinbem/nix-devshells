@@ -28,9 +28,9 @@
     colmena.url = "github:nix-community/colmena";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
     # Packages the fleet holds back from nixos-unstable while they're broken
-    # there (kleinbem/nix-holds-fleet); replaces the old fallbacks.nix overlay.
-    nix-holds-fleet = {
-      url = "github:kleinbem/nix-holds-fleet";
+    # there (kleinbem/nix-detour-fleet); replaces the old fallbacks.nix overlay.
+    nix-detour-fleet = {
+      url = "github:kleinbem/nix-detour-fleet";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nixpkgs-stable.follows = "nixpkgs-stable";
     };
@@ -92,7 +92,7 @@
               (_: prev: {
                 libghostty-vt = (inputs.ghostty.packages.${system} or { }).libghostty-vt or prev.hello;
               })
-              inputs.nix-holds-fleet.overlays.default
+              inputs.nix-detour-fleet.overlays.default
             ];
           };
           # Shared formatter config (excludes + programs), reused by the
@@ -170,7 +170,7 @@
                 (_: prev: {
                   libghostty-vt = (inputs.ghostty.packages.${system} or { }).libghostty-vt or prev.hello;
                 })
-                inputs.nix-holds-fleet.overlays.default
+                inputs.nix-detour-fleet.overlays.default
               ];
             })
           ];

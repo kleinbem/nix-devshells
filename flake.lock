@@ -301,11 +301,11 @@
     "nix-detour": {
       "inputs": {
         "nixpkgs": [
-          "nix-holds-fleet",
+          "nix-detour-fleet",
           "nixpkgs"
         ],
         "nixpkgs-stable": [
-          "nix-holds-fleet",
+          "nix-detour-fleet",
           "nixpkgs-stable"
         ]
       },
@@ -320,6 +320,31 @@
       "original": {
         "owner": "kleinbem-dev",
         "repo": "nix-detour",
+        "type": "github"
+      }
+    },
+    "nix-detour-fleet": {
+      "inputs": {
+        "nix-detour": "nix-detour",
+        "nix-packages": "nix-packages",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixpkgs-stable": [
+          "nixpkgs-stable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793521561,
+        "narHash": "sha256-si2YHQH+GdVk6cCuPbN2EVHIOEHqz8dPaTK85Kw6tGI=",
+        "owner": "kleinbem",
+        "repo": "nix-detour-fleet",
+        "rev": "821aa78dbe4c86010de9641b46616fb9962a9101",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kleinbem",
+        "repo": "nix-detour-fleet",
         "type": "github"
       }
     },
@@ -341,31 +366,6 @@
       "original": {
         "owner": "nix-community",
         "repo": "nix-github-actions",
-        "type": "github"
-      }
-    },
-    "nix-holds-fleet": {
-      "inputs": {
-        "nix-detour": "nix-detour",
-        "nix-packages": "nix-packages",
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "nixpkgs-stable": [
-          "nixpkgs-stable"
-        ]
-      },
-      "locked": {
-        "lastModified": 1793521561,
-        "narHash": "sha256-si2YHQH+GdVk6cCuPbN2EVHIOEHqz8dPaTK85Kw6tGI=",
-        "owner": "kleinbem",
-        "repo": "nix-holds-fleet",
-        "rev": "821aa78dbe4c86010de9641b46616fb9962a9101",
-        "type": "github"
-      },
-      "original": {
-        "owner": "kleinbem",
-        "repo": "nix-holds-fleet",
         "type": "github"
       }
     },
@@ -603,7 +603,7 @@
         "ghostty": "ghostty",
         "git-hooks": "git-hooks_2",
         "mk-shell-bin": "mk-shell-bin",
-        "nix-holds-fleet": "nix-holds-fleet",
+        "nix-detour-fleet": "nix-detour-fleet",
         "nix2container": "nix2container",
         "nixos-generators": "nixos-generators",
         "nixpkgs": "nixpkgs_4",
