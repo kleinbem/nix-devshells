@@ -19,12 +19,8 @@
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
     nixpkgs-master.url = "github:NixOS/nixpkgs/master";
-    # Tracks colmena's main branch instead of nixpkgs' packaged v0.4.0 (tagged
-    # 2023-05-15, ~3 years stale) — the project itself is still actively
-    # developed (commits within days), just without a new release tag. Not
-    # `follows`-ing nixpkgs: colmena pins its own compatible nixpkgs version
-    # for its build, and following ours risks a mismatch the maintainers
-    # haven't tested against.
+    # colmena main: nixpkgs only packages the old v0.4.0 tag. No nixpkgs
+    # `follows`, since colmena builds against the nixpkgs it pins itself.
     colmena.url = "github:nix-community/colmena";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
     # Packages the fleet holds back from nixos-unstable while they're broken
@@ -115,10 +111,8 @@
             # Shell
             shellcheck.enable = true;
             shfmt.enable = true;
-            # Python — ruff format only (black-compatible, applies automatically on
-            # `just maintenance::fmt`). The lint side (`ruff check`) is invoked on
-            # demand via `just maintenance::lint-python` so a 77-error backlog from
-            # legacy scripts doesn't block every format run.
+            # Python: ruff format only. `ruff check` runs separately
+            # (`just maintenance::lint-python`) so lint errors don't block formatting.
             ruff-format.enable = true;
             # Go
             gofmt.enable = true;
@@ -128,12 +122,9 @@
             settings.global.excludes = treefmtExcludes;
             programs = treefmtPrograms;
           };
-          # Meta-workspace formatter: the meta root has no flake.nix (tooling-only
-          # orchestrator since the 2026-06-22 migration), so the default formatter
-          # can't run there. Anchor on repos.nix (exists only at the meta root).
-          # The sub-flakes are gitignored in the meta repo so treefmt's git walk
-          # skips them; the nix-*/ exclude is belt-and-suspenders. Consumed by the
-          # meta `just maintenance::{fmt,lint}` recipes via `nix run`.
+          # formatter-meta: for the meta repos, which have no flake.nix of their own.
+          # Used by nix/.just/maintenance.just (format-all, lint-all). The nix-*/
+          # exclude keeps it out of the sibling sub-flakes.
           treefmtEvalMeta = inputs.treefmt-nix.lib.evalModule pkgs {
             projectRootFile = "repos.nix";
             settings.global.excludes = treefmtExcludes ++ [ "nix-*/**" ];

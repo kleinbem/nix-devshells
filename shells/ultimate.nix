@@ -16,12 +16,9 @@
 
   devenv.root = lib.mkForce "/home/martin/Develop/github.com/kleinbem/nix";
 
-  # NOTE: do NOT re-declare `_module.args.inputs`/`system` here. mkShell (flake.nix)
-  # already injects both into every shell's module args. Re-assigning
-  # `_module.args.system = system` is circular (its own `system` arg is sourced
-  # from `_module.args.system`) and caused `nix flake check` to hit infinite
-  # recursion on `devenv.shells.ultimate.packages` (apps/pentest filter on
-  # `availableOn system`, which forces the cycle).
+  # Don't re-declare `_module.args.inputs`/`system`: mkShell already injects
+  # them, and `_module.args.system = system` is circular (infinite recursion in
+  # `nix flake check` via the `availableOn system` filters).
 
   env = {
     DEV_SHELL_NAME = lib.mkForce "ultimate";

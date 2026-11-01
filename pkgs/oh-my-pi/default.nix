@@ -1,28 +1,11 @@
-# Oh My Pi (omp, github.com/can1357/oh-my-pi) — terminal coding-agent CLI.
+# Oh My Pi (omp, github.com/can1357/oh-my-pi): terminal coding-agent CLI,
+# from the prebuilt release binaries; hashes in ./versions.json
+# (`nix hash file --sri <url>`). A hand-kept copy of nix-packages/pkgs/oh-my-pi,
+# because nix-packages already takes nix-devshells as an input.
 #
-# Deliberately duplicated from kleinbem/nix-packages/pkgs/oh-my-pi (not
-# referenced from there): nix-packages already depends on nix-devshells as a
-# flake input, so nix-devshells depending back on nix-packages would be
-# circular. Keep both copies in sync by hand if this ever needs updating.
-#
-# Vendored as a prebuilt-binary derivation (same pattern as
-# pkgs/antigravity/cli.nix): upstream publishes real GitHub Releases binaries
-# (omp-<platform>-<arch>) rather than requiring a build from source — the
-# project's own multi-stage Dockerfile (Rust/Bazel/Bun toolchain) exists for
-# their own release pipeline, not as the intended way to obtain the tool.
-# Hashes pinned in ./versions.json. Bump the version + re-fetch hashes with:
-#   nix hash file --sri <url>
-#
-# NOT autoPatchelfHook: the binary is a `bun build --compile` output, which
-# embeds its actual application bytecode as a fixed-offset-from-EOF trailer
-# appended to the plain bun executable. patchelf rewriting the ELF interpreter
-# to a (much longer) Nix store path grows the file — confirmed live
-# 2026-08-05 (+2480 bytes vs the original download) — which shifts that
-# trailer's expected offset and silently breaks the embedded-payload lookup:
-# the binary still runs, but falls through to plain bun's own generic CLI
-# instead of omp's. Wrapping with an explicit dynamic-linker invocation
-# (`ld-linux-x86-64.so.2 --library-path ... <unmodified binary>`) leaves the
-# original bytes completely untouched and was confirmed working.
+# No patchelf: it's a `bun build --compile` binary whose payload sits at a fixed
+# offset from EOF, and growing the file makes it fall back to plain bun. So the
+# binary stays byte-for-byte and the wrapper runs it through the dynamic linker.
 {
   lib,
   stdenv,
@@ -55,11 +38,7 @@ stdenv.mkDerivation {
 
   # Not an archive — the release asset IS the binary.
   dontUnpack = true;
-  # stdenv's default fixupPhase strips ELF binaries even without
-  # autoPatchelfHook — that alone was enough to break the embedded-payload
-  # trailer (see top-of-file comment), confirmed live 2026-08-05 via a raw
-  # byte comparison (e_shoff moved) even after switching away from
-  # patchelf entirely.
+  # Stripping alone also breaks the embedded payload (see top of file).
   dontStrip = true;
 
   nativeBuildInputs = [ makeWrapper ];
