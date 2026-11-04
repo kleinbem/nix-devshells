@@ -14,13 +14,11 @@ let
       ${lib.concatMapStrings (b: "ln -s ${lib.getExe' pkg b} $out/bin/\n") bins}
     '';
 
-  # hass-cli against hass-pi. The token (HA user `cli`) is a sops secret on
-  # nixos-nvme, read per call so it never sits in the shell environment, and
-  # only when the call goes to hass-pi: an explicit server (HASS_SERVER,
-  # HOMEASSISTANT_SERVER, --server) gets no token, and neither does debug mode
-  # (--debug or HOMEASSISTANT_DEBUG; it logs the request headers). A token the
-  # caller set (HASS_TOKEN, HASSIO_TOKEN, HOMEASSISTANT_TOKEN, --token) wins.
-  # hass-cli's click options also read HOMEASSISTANT_<OPTION>, after HASS_*.
+  # hass-cli against hass-pi. The token (HA user `cli`, a sops secret on
+  # nixos-nvme) is read per call so it never sits in the calling shell, and is
+  # only sent to hass-pi: an explicit server or debug mode (which logs headers)
+  # gets none, and a caller-set token wins. hass-cli's click options also read
+  # HOMEASSISTANT_<OPTION> after HASS_*, hence both sets of names.
   hass-cli = pkgs.writeShellApplication {
     name = "hass-cli";
     text = ''
@@ -82,12 +80,9 @@ in
         pyyaml # nix-config/scripts/generate-infra-yaml.py (sync-agent)
       ]
     ))
-    # GCP bootstrap for nix/infra/google (2026-08-07): `gcloud auth login`,
-    # project/service-account setup for Terraform's own first credential,
-    # then ongoing `gcloud` use for anything the `google` Terraform provider
-    # doesn't cover. Scoped to this shell (not the shared default/default.nix
-    # every meta-workspace inherits, incl. openwrt) since it's nix-specific
-    # and a heavy package — no reason to pull it into unrelated shells.
+    # gcloud for nix/infra/google.tf: minting Terraform's first credential and
+    # whatever the google provider doesn't cover. Heavy, so kept out of the
+    # shared default shell.
     pkgs.google-cloud-sdk
     # Manual push/pin to the kleinbem-nixpkgs-review cache; CI pushes on its own.
     pkgs.cachix

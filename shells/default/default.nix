@@ -19,17 +19,11 @@ in
 {
   name = "meta-default";
 
-  # devenv's git-hooks integration adds a `devenv:git-hooks:run` task
-  # (`prek run -a`). It's declared `before devenv:enterTest`, but
-  # devenv-tasks runs every start-enabled task on `enterShell` too, so it
-  # fires on every direnv load / `cd`. Unlike `devenv:git-hooks:install`
-  # (guarded with `git rev-parse --git-dir`) the run task has no git-repo
-  # guard: when this shell is entered through the deliberately-non-git meta
-  # root `~/Develop/github.com/kleinbem/.envrc` (see root CLAUDE.md), `prek`
-  # aborts with "fatal: not a git repository" and fails the whole direnv
-  # load. Hooks are still installed as a real pre-commit hook by
-  # `devenv:git-hooks:install` and run at commit time and in CI, so make
-  # the shell-entry invocation a no-op.
+  # devenv also runs `devenv:git-hooks:run` (`prek run -a`) on every shell
+  # entry, with no git-repo guard, so direnv in the non-git workspace root fails
+  # with "not a git repository". The hooks still run at commit time and in CI.
+  # cachix/devenv#3184, fixed in 2.4 (the pinned devenv has it): check whether
+  # this override can go.
   tasks."devenv:git-hooks:run".exec = lib.mkForce ''
     exit 0
   '';
@@ -71,11 +65,8 @@ in
     pytest-nix-options = {
       enable = true;
       name = "pytest (_nix_options.py parsers)";
-      # Self-locating: this hook is installed via the shared "meta-default"
-      # shell into whatever repo's .git/hooks/pre-commit invokes it, so cwd
-      # varies — nix-config itself (scripts/tests is right there) vs a
-      # workspace-root-style invocation where nix-config is a child dir.
-      # No-op where neither exists (repos this hook doesn't apply to).
+      # The shared shell installs this hook in every repo, so it looks for the
+      # tests in cwd or ./nix-config and does nothing elsewhere.
       entry = "${pkgs.writeShellScript "pytest-nix-options" ''
         if [ -d scripts/tests ]; then
           exec ${pkgs.python3Packages.pytest}/bin/pytest scripts/tests/ -q
@@ -145,8 +136,7 @@ in
     pkgs.android-tools
     pkgs.heimdall
     pkgs.yq-go
-    # Tracks colmena's main branch, not nixpkgs' packaged v0.4.0 (frozen
-    # since 2023-05-15) — see flake.nix's colmena input for why.
+    # Tracks colmena's main branch, not nixpkgs' release; see flake.nix.
     inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena
     pkgs.openssl
     pkgs.trivy
