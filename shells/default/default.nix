@@ -22,6 +22,8 @@ in
   # devenv also runs `devenv:git-hooks:run` (`prek run -a`) on every shell
   # entry, with no git-repo guard, so direnv in the non-git workspace root fails
   # with "not a git repository". The hooks still run at commit time and in CI.
+  # cachix/devenv#3184, fixed in 2.4 (the pinned devenv has it): check whether
+  # this override can go.
   tasks."devenv:git-hooks:run".exec = lib.mkForce ''
     exit 0
   '';
@@ -134,8 +136,7 @@ in
     pkgs.android-tools
     pkgs.heimdall
     pkgs.yq-go
-    # Tracks colmena's main branch, not nixpkgs' packaged v0.4.0 (frozen
-    # since 2023-05-15) — see flake.nix's colmena input for why.
+    # Tracks colmena's main branch, not nixpkgs' release; see flake.nix.
     inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena
     pkgs.openssl
     pkgs.trivy

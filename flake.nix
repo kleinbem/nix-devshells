@@ -19,8 +19,9 @@
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
     nixpkgs-master.url = "github:NixOS/nixpkgs/master";
-    # colmena main: nixpkgs only packages the old v0.4.0 tag. No nixpkgs
-    # `follows`, since colmena builds against the nixpkgs it pins itself.
+    # colmena main rather than nixpkgs' release (0.5.0). No nixpkgs `follows`,
+    # since colmena builds against the nixpkgs it pins itself.
+    # no-link: a choice, not a workaround for an upstream bug.
     colmena.url = "github:nix-community/colmena";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
     # Packages the fleet holds back from nixos-unstable while they're broken

@@ -15,7 +15,7 @@ let
     '';
 
   # hass-cli against hass-pi. The token (HA user `cli`, a sops secret on
-  # nixos-nvme) is read per call so it never sits in the environment, and is
+  # nixos-nvme) is read per call so it never sits in the calling shell, and is
   # only sent to hass-pi: an explicit server or debug mode (which logs headers)
   # gets none, and a caller-set token wins. hass-cli's click options also read
   # HOMEASSISTANT_<OPTION> after HASS_*, hence both sets of names.
