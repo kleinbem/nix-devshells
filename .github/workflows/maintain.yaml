@@ -7,20 +7,28 @@ on:
     # pick up a fresh nix-devshells at 02:15.
     - cron: '0 2 * * *'
 
+# Everything runs on the App token (its PRs trigger Check Flake, GITHUB_TOKEN's don't).
+permissions: {}
+
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
       - name: Mint GitHub App installation token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          # Lock branch commit + PR with auto-merge on this repo only.
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
 
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false # the lock commit goes through the API, not git push
 
       - uses: kleinbem/actions/nix-setup@7ec628296d5194e6e10031706387b992a10a1638 # v1.0.1
         with:
