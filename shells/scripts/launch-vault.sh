@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
-# MIRROR OF: nix-presets/files/scripts/android/launch-vault.sh
-# Do not edit here — modify the source and copy this file from there.
-
 # Vault Launcher - Persistent, secure Android environment
 # Usage: launch-vault [AVD_NAME] [EXTRA_FLAGS...]
 
-# Default AVD Name
-AVD_NAME="${ANDROID_VAULT_AVD_NAME:-${1:-MySecureVault}}"
-if [ -z "${ANDROID_VAULT_AVD_NAME:-}" ]; then
-  shift || true
+# A first argument without a leading "-" is the AVD name; anything else goes to the emulator.
+if [ $# -gt 0 ] && [[ $1 != -* ]]; then
+  AVD_NAME="$1"
+  shift
+else
+  AVD_NAME="${ANDROID_VAULT_AVD_NAME:-MySecureVault}"
 fi
 
 # --- AVD Management ---
 SYSTEM_IMAGE="${ANDROID_SYSTEM_IMAGE:-system-images;android-36;google_apis_playstore;x86_64}"
-if ! avdmanager list avd -c | grep -q "^$AVD_NAME$"; then
+if ! avdmanager list avd -c | grep -Fxq -- "$AVD_NAME"; then
   echo "📦 Creating Vault AVD: $AVD_NAME using $SYSTEM_IMAGE"
   echo "no" | avdmanager create avd -n "$AVD_NAME" -k "$SYSTEM_IMAGE" --force
 else
@@ -49,7 +48,7 @@ echo "Starting Vault ($AVD_NAME)..."
 echo "Flags: ${FLAGS[*]} $*"
 
 if command -v steam-run &>/dev/null; then
-  steam-run emulator "${FLAGS[@]}" "$@" &
+  exec steam-run emulator "${FLAGS[@]}" "$@"
 else
-  emulator "${FLAGS[@]}" "$@" &
+  exec emulator "${FLAGS[@]}" "$@"
 fi

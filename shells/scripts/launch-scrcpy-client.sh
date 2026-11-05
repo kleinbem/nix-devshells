@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
-# MIRROR OF: nix-presets/files/scripts/android/launch-scrcpy-client.sh
-# Do not edit here — modify the source and copy this file from there.
-
 # Scrcpy Client - Connects to the running Daemon
 # Usage: launch-scrcpy-client
 
-ADB_SERIAL="emulator-5554"
+ADB_SERIAL="${ANDROID_ADB_SERIAL:-emulator-5554}"
 
 echo "🖥️ Connecting to Integrated Android..."
 
 # Check if device is connected
-if ! adb devices | grep -q -E "$ADB_SERIAL"'[[:space:]]+device'; then
+if ! adb devices | awk -v s="$ADB_SERIAL" '$1 == s && $2 == "device" { f = 1 } END { exit !f }'; then
   echo "❌ Error: Emulator is not running or not ready."
-  echo "Check the 'android-emulator' user service: systemctl --user status android-emulator"
+  echo "Start it first: launch-emulator-daemon"
   exit 1
 fi
 
@@ -22,5 +19,5 @@ scrcpy --serial "$ADB_SERIAL" \
   --always-on-top \
   --stay-awake \
   --shortcut-mod=lctrl,lalt \
-  --forward-all-clicks \
+  --mouse-bind=++++ \
   "$@"
