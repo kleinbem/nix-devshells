@@ -14,6 +14,18 @@ let
       ${lib.concatMapStrings (b: "ln -s ${lib.getExe' pkg b} $out/bin/\n") bins}
     '';
 
+  # Stable semgrep: unstable semgrep-core fails due to patchelf 0.19.2 assertion crash.
+  # Omitted when nixpkgs-stable is unavailable to avoid pulling in broken unstable build.
+  # https://github.com/NixOS/nixpkgs/issues/577387
+  semgrepClis = lib.optional (inputs ? nixpkgs-stable) (
+    clisOf
+      (import inputs.nixpkgs-stable {
+        system = pkgs.stdenv.hostPlatform.system;
+        config.allowUnfree = true;
+      }).semgrep
+      [ "semgrep" ]
+  );
+
   # hass-cli against hass-pi. The token (HA user `cli`, a sops secret on
   # nixos-nvme) is read per call so it never sits in the calling shell, and is
   # only sent to hass-pi: an explicit server or debug mode (which logs headers)
@@ -106,7 +118,8 @@ in
     pkgs.syncthing # `syncthing cli` against a remote GUI address
     pkgs.ollama # client via OLLAMA_HOST
     pkgs.caddy # caddy validate/fmt/adapt
-  ];
+  ]
+  ++ semgrepClis;
 
   tasks."workspace:health" = {
     exec = ''
