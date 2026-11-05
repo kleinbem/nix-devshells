@@ -110,7 +110,7 @@ in
   packages = [
     # Tests stay on: they're what catches aider/litellm drift like
     # nixpkgs#569679, which doCheck = false shipped as a runtime crash.
-    (binOnly (pkgs.callPackage ../../pkgs/aider-chat { }))
+    (binOnly pkgs.aider-chat)
     pkgs.nix-doc
     pkgs.statix
     pkgs.nixfmt
