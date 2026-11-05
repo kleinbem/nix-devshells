@@ -7,7 +7,7 @@ ADB_SERIAL="${ANDROID_ADB_SERIAL:-emulator-5554}"
 echo "🖥️ Connecting to Integrated Android..."
 
 # Check if device is connected
-if ! adb devices | grep -q -E "$ADB_SERIAL"'[[:space:]]+device'; then
+if ! adb devices | awk -v s="$ADB_SERIAL" '$1 == s && $2 == "device" { f = 1 } END { exit !f }'; then
   echo "❌ Error: Emulator is not running or not ready."
   echo "Start it first: launch-emulator-daemon"
   exit 1
@@ -19,5 +19,5 @@ scrcpy --serial "$ADB_SERIAL" \
   --always-on-top \
   --stay-awake \
   --shortcut-mod=lctrl,lalt \
-  --forward-all-clicks \
+  --mouse-bind=++++ \
   "$@"

@@ -19,7 +19,7 @@ fi
 echo "🚀 Starting Emulator Daemon: $AVD_NAME"
 
 # 1. Create AVD if needed
-if ! avdmanager list avd -c | grep -q "^$AVD_NAME$"; then
+if ! avdmanager list avd -c | grep -Fxq -- "$AVD_NAME"; then
   echo "Creating AVD: $AVD_NAME using $SYSTEM_IMAGE"
   echo "no" | avdmanager create avd -n "$AVD_NAME" -k "$SYSTEM_IMAGE" --force
 else
@@ -51,7 +51,7 @@ if [ "$HEADLESS" = "true" ]; then
 fi
 
 echo "Starting Emulator process..."
-read -ra EXTRA_ARGS <<<"$EXTRA_FLAGS"
+read -ra EXTRA_ARGS <<<"${EXTRA_FLAGS//$'\n'/ }"
 steam-run emulator "${ARGS[@]}" "${EXTRA_ARGS[@]}" &
 
 EMULATOR_PID=$!

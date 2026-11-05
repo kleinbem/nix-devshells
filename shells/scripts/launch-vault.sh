@@ -12,7 +12,7 @@ fi
 
 # --- AVD Management ---
 SYSTEM_IMAGE="${ANDROID_SYSTEM_IMAGE:-system-images;android-36;google_apis_playstore;x86_64}"
-if ! avdmanager list avd -c | grep -q "^$AVD_NAME$"; then
+if ! avdmanager list avd -c | grep -Fxq -- "$AVD_NAME"; then
   echo "📦 Creating Vault AVD: $AVD_NAME using $SYSTEM_IMAGE"
   echo "no" | avdmanager create avd -n "$AVD_NAME" -k "$SYSTEM_IMAGE" --force
 else
