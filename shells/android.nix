@@ -80,7 +80,7 @@ let
       export ANDROID_EMULATOR_HEADLESS="true"
 
       # Launch the daemon script
-      ${builtins.readFile (scriptPath + "/launch-emulator-daemon.sh")} "$@"
+      ${builtins.readFile (scriptPath + "/launch-emulator-daemon.sh")}
     '';
   };
 
@@ -91,7 +91,7 @@ let
       pkgs.scrcpy
     ];
     text = ''
-      ${builtins.readFile (scriptPath + "/launch-scrcpy-client.sh")} "$@"
+      ${builtins.readFile (scriptPath + "/launch-scrcpy-client.sh")}
     '';
   };
 

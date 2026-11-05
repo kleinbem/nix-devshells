@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# MIRROR OF: nix-presets/files/scripts/android/launch-emulator-daemon.sh
-# Do not edit here — modify the source and copy this file from there.
-
 # Emulator Daemon - running as Systemd Service
 # Usage: launch-emulator-daemon
 
@@ -54,8 +51,8 @@ if [ "$HEADLESS" = "true" ]; then
 fi
 
 echo "Starting Emulator process..."
-# shellcheck disable=SC2086
-steam-run emulator "${ARGS[@]}" $EXTRA_FLAGS &
+read -ra EXTRA_ARGS <<<"$EXTRA_FLAGS"
+steam-run emulator "${ARGS[@]}" "${EXTRA_ARGS[@]}" &
 
 EMULATOR_PID=$!
 
