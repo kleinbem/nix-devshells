@@ -263,5 +263,7 @@ fi
 
 echo "✨ System Ready."
 # set -e: a non-zero emulator exit must still reach the scrcpy cleanup.
-wait "$EMU_PID" || true
+EMU_STATUS=0
+wait "$EMU_PID" || EMU_STATUS=$?
 kill "${SCRCPY_PIDS[@]}" 2>/dev/null || true
+exit "$EMU_STATUS"
