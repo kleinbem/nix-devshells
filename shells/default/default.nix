@@ -1,7 +1,6 @@
 {
   pkgs,
   inputs,
-  lib,
   ...
 }:
 let
@@ -19,14 +18,6 @@ in
 {
   name = "meta-default";
 
-  # devenv also runs `devenv:git-hooks:run` (`prek run -a`) on every shell
-  # entry, with no git-repo guard, so direnv in the non-git workspace root fails
-  # with "not a git repository". The hooks still run at commit time and in CI.
-  # cachix/devenv#3184, fixed in 2.4 (the pinned devenv has it): check whether
-  # this override can go.
-  tasks."devenv:git-hooks:run".exec = lib.mkForce ''
-    exit 0
-  '';
   git-hooks.package =
     (pkgs.writeShellScriptBin "prek" ''
       cmd="$1"
