@@ -39,9 +39,10 @@ in
       BWRAP_ARGS=(
         --ro-bind /nix/store /nix/store
         --ro-bind /etc /etc
-        # Shebang interpreters (#!/bin/sh, #!/usr/bin/env)
-        --ro-bind-try /bin /bin
-        --ro-bind-try /usr/bin/env /usr/bin/env
+        # Shebang interpreters (#!/bin/sh, #!/usr/bin/env) from the store: a
+        # host one may need a loader under /lib, which the jail doesn't mount.
+        --ro-bind ${pkgs.bash}/bin/sh /bin/sh
+        --ro-bind ${pkgs.coreutils}/bin/env /usr/bin/env
         --dev /dev
         --proc /proc
         --tmpfs /tmp

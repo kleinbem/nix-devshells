@@ -8,10 +8,10 @@
       # otherwise block shell entry. Only "can't execute" counts as broken,
       # since many tools exit non-zero on --version.
       rc=0
-      out=$(${pkgs.coreutils}/bin/timeout 3 "$bin" --version </dev/null 2>/dev/null) || rc=$?
+      out=$(${pkgs.coreutils}/bin/timeout --kill-after=1 3 "$bin" --version </dev/null 2>/dev/null) || rc=$?
       if [ "$rc" -eq 126 ] || [ "$rc" -eq 127 ]; then
         printf "  ❌ %-15s (BROKEN)\n" "$bin"
-      elif [ "$rc" -eq 124 ]; then
+      elif [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ]; then
         printf "  ⏱️  %-15s (no --version, timed out)\n" "$bin"
       else
         version_raw=$(printf '%s\n' "$out" | head -n 1 | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -n 1 || true)

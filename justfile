@@ -19,5 +19,5 @@ fmt:
 [group("Discovery")]
 list-shells:
     @echo "🐚 Available shells:"
-    @nix eval ".#devShells.$(nix eval --impure --raw --expr builtins.currentSystem)" --apply 'builtins.attrNames' --json \
-        | jq -r '.[]'
+    @nix eval --raw ".#devShells.$(nix eval --impure --raw --expr builtins.currentSystem)" \
+        --apply 'shells: builtins.concatStringsSep "\n" (builtins.attrNames shells) + "\n"'
