@@ -6,6 +6,8 @@
 # No patchelf: it's a `bun build --compile` binary whose payload sits at a fixed
 # offset from EOF, and growing the file makes it fall back to plain bun. So the
 # binary stays byte-for-byte and the wrapper runs it through the dynamic linker.
+# upstream: oven-sh/bun#4103, fixed by oven-sh/bun#26923 (payload in an ELF
+# section). Try patchelf again once omp ships a binary built with that bun.
 {
   lib,
   stdenv,

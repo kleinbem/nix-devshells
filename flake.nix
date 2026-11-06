@@ -86,9 +86,6 @@
               android_sdk.accept_license = true;
             };
             overlays = [
-              (_: prev: {
-                libghostty-vt = (inputs.ghostty.packages.${system} or { }).libghostty-vt or prev.hello;
-              })
               inputs.nix-detour-fleet.overlays.default
             ];
           };
@@ -159,9 +156,6 @@
           devenv.modules = [
             (_: {
               overlays = [
-                (_: prev: {
-                  libghostty-vt = (inputs.ghostty.packages.${system} or { }).libghostty-vt or prev.hello;
-                })
                 inputs.nix-detour-fleet.overlays.default
               ];
             })
@@ -181,7 +175,6 @@
                   # Pass inputs to the module arguments
                   _module.args = {
                     inherit inputs system;
-                    libghostty-vt = pkgs.hello; # Use hello as a dummy package
                   };
                 };
             in
