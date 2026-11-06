@@ -163,7 +163,8 @@
 
           devenv.shells =
             let
-              # Using hardcoded path for local development to avoid read-only store issues
+              # Hardcoded so the shells evaluate purely: a root from $PWD would need
+              # --impure everywhere, and a store path is read-only for devenv's state.
               localRoot = "/home/martin/Develop/github.com/kleinbem/nix-devshells";
               mkShell =
                 module:
