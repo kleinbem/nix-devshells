@@ -1,0 +1,134 @@
+{
+  lib,
+  pkgs,
+  inputs ? { },
+  ...
+}:
+
+let
+  # Expose just the named binaries of a package that also ships a server.
+  clisOf =
+    pkg: bins:
+    pkgs.runCommand "${pkg.pname or pkg.name}-clis" { } ''
+      mkdir -p $out/bin
+      ${lib.concatMapStrings (b: "ln -s ${lib.getExe' pkg b} $out/bin/\n") bins}
+    '';
+
+  # Stable semgrep: unstable semgrep-core fails due to patchelf 0.19.2 assertion crash.
+  # Omitted when nixpkgs-stable is unavailable to avoid pulling in broken unstable build.
+  # https://github.com/NixOS/nixpkgs/issues/577387
+  semgrepClis = lib.optional (inputs ? nixpkgs-stable) (
+    clisOf
+      (import inputs.nixpkgs-stable {
+        system = pkgs.stdenv.hostPlatform.system;
+        config.allowUnfree = true;
+      }).semgrep
+      [ "semgrep" ]
+  );
+
+  # hass-cli against hass-pi. The token (HA user `cli`, a sops secret on
+  # nixos-nvme) is read per call so it never sits in the calling shell, and is
+  # only sent to hass-pi: an explicit server or debug mode (which logs headers)
+  # gets none, and a caller-set token wins. hass-cli's click options also read
+  # HOMEASSISTANT_<OPTION> after HASS_*, hence both sets of names.
+  hass-cli = pkgs.writeShellApplication {
+    name = "hass-cli";
+    text = ''
+      own=1
+      [ -n "''${HASS_SERVER:-}''${HOMEASSISTANT_SERVER:-}" ] && own=0
+      [ -n "''${HOMEASSISTANT_DEBUG:-}" ] && own=0
+      for a in "$@"; do
+        case "$a" in -s | --server | --server=* | --debug | --token | --token=*) own=0 ;; esac
+      done
+      if [ -z "''${HASS_SERVER:-}''${HOMEASSISTANT_SERVER:-}" ]; then
+        export HASS_SERVER=http://10.0.0.21:8123
+      fi
+      if [ "$own" = 1 ] && [ -z "''${HASS_TOKEN:-}''${HASSIO_TOKEN:-}''${HOMEASSISTANT_TOKEN:-}" ] && [ -r /run/secrets/hass_cli_token ]; then
+        HASS_TOKEN="$(< /run/secrets/hass_cli_token)"
+        export HASS_TOKEN
+      fi
+      exec ${lib.getExe pkgs.home-assistant-cli} "$@"
+    '';
+  };
+in
+{
+  imports = [ ./default/default.nix ];
+
+  # Devenv root is the meta-workspace dir (parent of nix-devshells). When
+  # this shell loads via `use flake ./nix-devshells#workspace` from the
+  # meta root, devenv state still lives in the workspace, not under
+  # nix-devshells. mkForce because mkShell already sets devenv.root.
+  devenv.root = lib.mkForce "/home/martin/Develop/github.com/kleinbem/nix";
+
+  env = {
+    DEV_SHELL_NAME = "meta";
+    NIXPKGS_ALLOW_UNFREE = "1";
+    STARSHIP_SHELL_SYMBOL = "🏗️ ";
+  };
+
+  _module.args.inputs = inputs;
+
+  processes.workspace-info.exec = "while true; do date; sleep 3600; done";
+
+  scripts.workspace-status.exec = ''
+    echo "🏗️  Project Root: $DEVENV_ROOT"
+    echo -n "🚀 Status: "
+    pushd "$DEVENV_ROOT" > /dev/null
+    devenv tasks run workspace:health
+    popd > /dev/null
+  '';
+
+  packages = [
+    # claude-code comes from the user profile (nix-config home-manager);
+    # bleeding-edge copy lives in the ai-dev shell (pkgsMaster).
+    pkgs.openssh
+    (pkgs.python3.withPackages (
+      p: with p; [
+        mcp
+        psutil
+        requests
+        google-api-python-client
+        google-auth-oauthlib
+        pyyaml # nix-config/scripts/generate-infra-yaml.py (sync-agent)
+      ]
+    ))
+    # gcloud for nix/infra/google.tf: minting Terraform's first credential and
+    # whatever the google provider doesn't cover. Heavy, so kept out of the
+    # shared default shell.
+    pkgs.google-cloud-sdk
+    # Manual push/pin to the kleinbem-nixpkgs-review cache; CI pushes on its own.
+    pkgs.cachix
+
+    # One CLI per app/service the fleet runs, so agents drive them through
+    # Bash instead of MCP. garage, ntfy, netbird, buzz and rbw (Vaultwarden)
+    # already come from the system/user profile.
+    pkgs.attic-client
+    hass-cli
+    pkgs.grafanactl
+    pkgs.cloudflared
+    pkgs.flarectl
+    pkgs.wrangler # Cloudflare Pages
+    pkgs.stalwart-cli
+    pkgs.ente-cli
+    pkgs.qbittorrent-cli # qbt
+    # Server packages that ship the client: keep only the client on PATH.
+    (clisOf pkgs.grafana-loki [ "logcli" ])
+    (clisOf pkgs.prometheus-alertmanager [ "amtool" ])
+    (clisOf pkgs.postgresql [ "psql" ]) # dev-db and service databases
+    pkgs.syncthing # `syncthing cli` against a remote GUI address
+    pkgs.ollama # client via OLLAMA_HOST
+    pkgs.caddy # caddy validate/fmt/adapt
+  ]
+  ++ semgrepClis;
+
+  tasks."workspace:health" = {
+    exec = ''
+      if curl -s -f http://localhost:11434/api/tags > /dev/null 2>&1; then
+        echo "✅ Ollama is ONLINE"
+      else
+        echo "⚠️ Ollama is OFFLINE (Run 'just ai-up' to start)"
+      fi
+    '';
+    before = [ "devenv:enterShell" ];
+  };
+}

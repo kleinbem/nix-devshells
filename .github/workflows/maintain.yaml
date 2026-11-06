@@ -1,0 +1,95 @@
+name: Maintain Flake
+on:
+  workflow_dispatch:
+  schedule:
+    # 02:00 UTC — bottom of the dep tree (no internal sub-flake deps),
+    # runs first so nix-hardware / nix-packages / nix-templates can
+    # pick up a fresh nix-devshells at 02:15.
+    - cron: '0 2 * * *'
+
+# Everything runs on the App token (its PRs trigger Check Flake, GITHUB_TOKEN's don't).
+permissions: {}
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mint GitHub App installation token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          # Lock branch commit + PR with auto-merge on this repo only.
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false # the lock commit goes through the API, not git push
+
+      - uses: kleinbem/actions/nix-setup@7ec628296d5194e6e10031706387b992a10a1638 # v1.0.1
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          nix-path: nixpkgs=channel:nixos-unstable
+
+      - name: Update flake inputs
+        run: nix flake update
+
+      - name: Validate flake (eval-only — blocks a bad lock from landing)
+        # Not `nix flake check --no-build`: devenv's task runner is fetched via
+        # IFD, and --no-build refuses to realize that drv ("path …-source.drv
+        # is not valid"). Plain eval may realize IFD, so eval every x86_64
+        # shell — the product of this flake — instead.
+        run: |
+          for shell in $(nix eval .#devShells.x86_64-linux --apply builtins.attrNames --json | jq -r '.[]'); do
+            echo "eval $shell"
+            nix eval ".#devShells.x86_64-linux.\"$shell\".drvPath" > /dev/null
+          done
+
+      - name: Open PR for flake.lock updates (auto-merges once Check Flake is green)
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          if git diff --quiet flake.lock; then
+            echo "flake.lock unchanged — nothing to do."
+            exit 0
+          fi
+
+          BRANCH_NAME="update-flake-lock"
+          REPO="${{ github.repository }}"
+          MAIN_SHA=$(gh api "repos/$REPO/git/ref/heads/main" --jq .object.sha)
+
+          # Reset (or create) the branch to point at current main, then commit
+          # via GraphQL createCommitOnBranch — GitHub signs these commits
+          # automatically ("Verified", committer=GitHub), satisfying the
+          # required_signatures ruleset without any key material in CI.
+          if gh api "repos/$REPO/git/ref/heads/$BRANCH_NAME" >/dev/null 2>&1; then
+            gh api -X PATCH "repos/$REPO/git/refs/heads/$BRANCH_NAME" -f sha="$MAIN_SHA" -F force=true >/dev/null
+          else
+            gh api "repos/$REPO/git/refs" -f ref="refs/heads/$BRANCH_NAME" -f sha="$MAIN_SHA" >/dev/null
+          fi
+
+          jq -n \
+            --arg repo "$REPO" \
+            --arg branch "$BRANCH_NAME" \
+            --arg sha "$MAIN_SHA" \
+            --arg content "$(base64 -w0 flake.lock)" \
+            --arg query 'mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }' \
+            '{query: $query, variables: {input: {
+                branch: {repositoryNameWithOwner: $repo, branchName: $branch},
+                message: {headline: "chore: update flake.lock (auto)"},
+                expectedHeadOid: $sha,
+                fileChanges: {additions: [{path: "flake.lock", contents: $content}]}
+            }}}' | gh api graphql --input -
+
+          gh pr create \
+            --title "chore: update flake.lock" \
+            --body "Automated lockfile update. Check Flake re-validates the new inputs on this PR; auto-merge is enabled and lands this once it's green." \
+            --head "$BRANCH_NAME" \
+            --base main || true
+
+          gh pr merge "$BRANCH_NAME" --auto --squash || true
