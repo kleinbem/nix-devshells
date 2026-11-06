@@ -68,6 +68,7 @@ let
     runtimeInputs = [
       androidSdk.androidsdk
       pkgs.jdk
+      pkgs.coreutils
       pkgs.procps
       pkgs.steam-run
       pkgs.qemu_kvm

@@ -69,14 +69,15 @@ trap cleanup EXIT
 trap 'exit 130' SIGINT
 trap 'exit 143' SIGTERM
 
-# 3. Wait for ADB
-echo "⏳ Waiting for ADB connection..."
-adb -s "$ADB_SERIAL" wait-for-device
-
-# 4. Wait for Android Boot Completion
-echo "⏳ Android is booting (Waiting for sys.boot_completed)..."
+# 3. Wait for boot. Polls instead of `adb wait-for-device`, which blocks with
+# no timeout and keeps the traps from running until adb returns.
+echo "⏳ Waiting for $ADB_SERIAL to boot (sys.boot_completed)..."
 ITER=0
-while [ "$(adb -s "$ADB_SERIAL" shell getprop sys.boot_completed | tr -d '\r')" != "1" ]; do
+until [ "$(timeout 10 adb -s "$ADB_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
+  if ! kill -0 "$EMULATOR_PID" 2>/dev/null; then
+    echo "❌ Emulator exited before $ADB_SERIAL booted."
+    exit 1
+  fi
   sleep 2
   ITER=$((ITER + 2))
   if [ "$ITER" -gt "$TIMEOUT" ]; then
@@ -86,7 +87,7 @@ while [ "$(adb -s "$ADB_SERIAL" shell getprop sys.boot_completed | tr -d '\r')" 
 done
 echo "✅ Android Booted Successfully!"
 
-# 5. Apply Settings
+# 4. Apply Settings
 echo "⚙️ Applying persistent settings..."
 # Prevent screen off and keep awake on power
 adb -s "$ADB_SERIAL" shell settings put system screen_off_timeout 2147483647
@@ -94,5 +95,5 @@ adb -s "$ADB_SERIAL" shell settings put global stay_on_while_plugged_in 7
 
 echo "✅ Daemon Ready. Listening for clients..."
 
-# 6. Block until emulator exits
+# 5. Block until emulator exits
 wait "$EMULATOR_PID"
