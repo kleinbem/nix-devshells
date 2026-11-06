@@ -134,6 +134,7 @@ FLAGS=(
 # but we explicitly add USB devices to ensure they take precedence if Virtio fails.
 # We also use 'virtio-mouse-pci' if possible, but 'usb-tablet' is safer for absolute pointing.
 # Strategy: DEFAULT (Enable VirtioInput) + USB Fallbacks
+# no-link: found by trial on this emulator setup, no upstream report.
 QEMU_FLAGS=("-usb" "-device" "usb-tablet" "-device" "usb-kbd")
 
 # 🔑 Hardware Security Key (Opt-in)
@@ -155,6 +156,7 @@ fi
 
 # GPU & Window Logic
 # 🛡️ Compatibility Mode for Secure Apps (Bitwarden Black Screen Fix)
+# no-link: found by trial, no upstream report.
 if [ "$COMPAT_MODE" = "yes" ]; then
   echo "🛡️  Compatibility Mode Enabled: Forcing SwiftShader (Software GPU) to fix black screens..."
   FLAGS+=(-gpu swiftshader_indirect -feature -Vulkan)
@@ -207,11 +209,15 @@ fi
 # 7. Launch Emulator
 echo "🎬 Starting Emulator..."
 
+# Per-user: a fixed /tmp file owned by another user would break the redirects.
+LOG_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/android-launcher"
+mkdir -p "$LOG_DIR"
+
 if command -v steam-run >/dev/null 2>&1; then
-  echo "steam-run emulator ${FLAGS[*]} ${ARGS_TO_PASS[*]} -qemu ${QEMU_FLAGS[*]}" >/tmp/emulator-cmd.log
-  steam-run emulator "${FLAGS[@]}" "${ARGS_TO_PASS[@]}" -qemu "${QEMU_FLAGS[@]}" >/tmp/emulator.log 2>&1 &
+  echo "steam-run emulator ${FLAGS[*]} ${ARGS_TO_PASS[*]} -qemu ${QEMU_FLAGS[*]}" >"$LOG_DIR/emulator-cmd.log"
+  steam-run emulator "${FLAGS[@]}" "${ARGS_TO_PASS[@]}" -qemu "${QEMU_FLAGS[@]}" >"$LOG_DIR/emulator.log" 2>&1 &
 else
-  emulator "${FLAGS[@]}" "${ARGS_TO_PASS[@]}" -qemu "${QEMU_FLAGS[@]}" >/tmp/emulator.log 2>&1 &
+  emulator "${FLAGS[@]}" "${ARGS_TO_PASS[@]}" -qemu "${QEMU_FLAGS[@]}" >"$LOG_DIR/emulator.log" 2>&1 &
 fi
 EMU_PID=$!
 
@@ -222,7 +228,7 @@ adb wait-for-device
 
 while [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" != "1" ]; do
   kill -0 "$EMU_PID" 2>/dev/null || {
-    echo "❌ Emulator died. Check /tmp/emulator.log"
+    echo "❌ Emulator died. Check $LOG_DIR/emulator.log"
     exit 1
   }
   sleep 2
@@ -247,14 +253,15 @@ SCRCPY_PIDS=()
 if [ "$USE_SCRCPY" = "yes" ]; then
   SCRCPY_ARGS=("--max-size=1080" "--video-bit-rate=4M" "--no-audio" "--verbosity=verbose")
 
-  echo "📺 Opening Scrcpy windows (Logs: /tmp/scrcpy.log)..."
-  scrcpy -s emulator-5554 --window-title "Phone" "${SCRCPY_ARGS[@]}" >/tmp/scrcpy.log 2>&1 &
+  echo "📺 Opening Scrcpy windows (Logs: $LOG_DIR/scrcpy.log)..."
+  scrcpy -s emulator-5554 --window-title "Phone" "${SCRCPY_ARGS[@]}" >"$LOG_DIR/scrcpy.log" 2>&1 &
   SCRCPY_PIDS+=($!)
   sleep 1
-  scrcpy -s emulator-5554 --display-id=2 --window-title "Desktop" "${SCRCPY_ARGS[@]}" >>/tmp/scrcpy.log 2>&1 &
+  scrcpy -s emulator-5554 --display-id=2 --window-title "Desktop" "${SCRCPY_ARGS[@]}" >>"$LOG_DIR/scrcpy.log" 2>&1 &
   SCRCPY_PIDS+=($!)
 fi
 
 echo "✨ System Ready."
-wait "$EMU_PID"
+# set -e: a non-zero emulator exit must still reach the scrcpy cleanup.
+wait "$EMU_PID" || true
 kill "${SCRCPY_PIDS[@]}" 2>/dev/null || true

@@ -7,7 +7,11 @@ let
     buildToolsVersions = [ "36.0.0" ];
     includeEmulator = true;
     includeSystemImages = true;
-    systemImageTypes = [ "google_apis_playstore" ];
+    # google_apis is the rootable image (`--rootable` in the launch scripts).
+    systemImageTypes = [
+      "google_apis_playstore"
+      "google_apis"
+    ];
     abiVersions = [ "x86_64" ];
     platformVersions = [ "36" ];
   };

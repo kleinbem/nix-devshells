@@ -35,6 +35,8 @@ MEMORY_SIZE="${ANDROID_EMULATOR_MEMORY:-4096}"
 EXTRA_FLAGS="${ANDROID_EMULATOR_FLAGS:-}"
 HEADLESS="${ANDROID_EMULATOR_HEADLESS:-true}"
 
+# no-link: Vulkan, clipboard sharing and the qemu -m override are setup
+# choices for a headless daemon, not workarounds for a reported bug.
 ARGS=(
   "@$AVD_NAME"
   -no-audio
@@ -56,17 +58,20 @@ steam-run emulator "${ARGS[@]}" "${EXTRA_ARGS[@]}" &
 
 EMULATOR_PID=$!
 
-# Trap signals to shut down emulator cleanly
+# Stop the emulator on EXIT. Signals exit so EXIT runs it; it can run after
+# the emulator is already gone.
 cleanup() {
   echo "Shutting down emulator..."
-  kill $EMULATOR_PID
-  wait $EMULATOR_PID
+  kill "$EMULATOR_PID" 2>/dev/null || true
+  wait "$EMULATOR_PID" 2>/dev/null || true
 }
-trap cleanup SIGINT SIGTERM EXIT
+trap cleanup EXIT
+trap 'exit 130' SIGINT
+trap 'exit 143' SIGTERM
 
 # 3. Wait for ADB
 echo "⏳ Waiting for ADB connection..."
-adb wait-for-device -s "$ADB_SERIAL"
+adb -s "$ADB_SERIAL" wait-for-device
 
 # 4. Wait for Android Boot Completion
 echo "⏳ Android is booting (Waiting for sys.boot_completed)..."
@@ -90,4 +95,4 @@ adb -s "$ADB_SERIAL" shell settings put global stay_on_while_plugged_in 7
 echo "✅ Daemon Ready. Listening for clients..."
 
 # 6. Block until emulator exits
-wait $EMULATOR_PID
+wait "$EMULATOR_PID"
