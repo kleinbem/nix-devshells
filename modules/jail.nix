@@ -50,6 +50,8 @@ in
         --bind "$HOME" "$HOME"
         --bind "$PROJECT_ROOT" "$PROJECT_ROOT"
         --chdir "$(pwd)"
+        # No TIOCSTI filter: fleet kernels set LEGACY_TIOCSTI=n; orin-nano's
+        # 5.15 kernel allows it, but the jail shells don't run there.
         --unshare-all
         --share-net
         --hostname agent-sanctuary
