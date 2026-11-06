@@ -72,18 +72,18 @@ trap 'exit 143' SIGTERM
 # 3. Wait for boot. Polls instead of `adb wait-for-device`, which blocks with
 # no timeout and keeps the traps from running until adb returns.
 echo "⏳ Waiting for $ADB_SERIAL to boot (sys.boot_completed)..."
-ITER=0
+# $SECONDS counts the time spent in adb too, not only the sleeps.
+DEADLINE=$((SECONDS + TIMEOUT))
 until [ "$(timeout 10 adb -s "$ADB_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
   if ! kill -0 "$EMULATOR_PID" 2>/dev/null; then
     echo "❌ Emulator exited before $ADB_SERIAL booted."
     exit 1
   fi
-  sleep 2
-  ITER=$((ITER + 2))
-  if [ "$ITER" -gt "$TIMEOUT" ]; then
+  if [ "$SECONDS" -ge "$DEADLINE" ]; then
     echo "❌ Timeout: Android failed to boot within $TIMEOUT seconds."
     exit 1
   fi
+  sleep 2
 done
 echo "✅ Android Booted Successfully!"
 
