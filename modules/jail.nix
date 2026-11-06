@@ -39,6 +39,9 @@ in
       BWRAP_ARGS=(
         --ro-bind /nix/store /nix/store
         --ro-bind /etc /etc
+        # Shebang interpreters (#!/bin/sh, #!/usr/bin/env)
+        --ro-bind-try /bin /bin
+        --ro-bind-try /usr/bin/env /usr/bin/env
         --dev /dev
         --proc /proc
         --tmpfs /tmp

@@ -13,8 +13,11 @@ in
   options.modules.devshell-launchers = {
     enable = mkEnableOption "desktop launchers for devshells";
     flakePath = mkOption {
-      type = types.str;
-      default = "/home/martin/Develop/github.com/kleinbem/nix-devshells";
+      # Goes into double-quoted Exec= lines unescaped, so no characters the
+      # desktop-entry parser expands there.
+      type = types.strMatching ''[^"`$\\%]*'';
+      default = "${config.home.homeDirectory}/Develop/github.com/kleinbem/nix-devshells";
+      defaultText = literalExpression ''"''${config.home.homeDirectory}/Develop/github.com/kleinbem/nix-devshells"'';
       description = "Path to the root flake containing the devshells";
     };
   };
