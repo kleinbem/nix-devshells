@@ -43,8 +43,16 @@ jobs:
         # IFD, and --no-build refuses to realize that drv ("path …-source.drv
         # is not valid"). Plain eval may realize IFD, so eval every x86_64
         # shell — the product of this flake — instead.
+        # The list goes into a variable first: a failing substitution in the
+        # `for` header doesn't trip -e and would leave zero shells to check.
         run: |
-          for shell in $(nix eval .#devShells.x86_64-linux --apply builtins.attrNames --json | jq -r '.[]'); do
+          set -euo pipefail
+          shells=$(nix eval .#devShells.x86_64-linux --apply builtins.attrNames --json | jq -r '.[]')
+          if [ -z "$shells" ]; then
+            echo "no devShells found" >&2
+            exit 1
+          fi
+          for shell in $shells; do
             echo "eval $shell"
             nix eval ".#devShells.x86_64-linux.\"$shell\".drvPath" > /dev/null
           done
@@ -86,10 +94,25 @@ jobs:
                 fileChanges: {additions: [{path: "flake.lock", contents: $content}]}
             }}}' | gh api graphql --input -
 
-          gh pr create \
-            --title "chore: update flake.lock" \
-            --body "Automated lockfile update. Check Flake re-validates the new inputs on this PR; auto-merge is enabled and lands this once it's green." \
-            --head "$BRANCH_NAME" \
-            --base main || true
+          # Resetting the branch makes it identical to main for an instant, and
+          # GitHub can close the open PR right then (zero diff). Reopen it.
+          PR_JSON=$(gh pr list --head "$BRANCH_NAME" --state all --limit 1 --json number,state --jq '.[0] // empty')
+          PR_NUMBER=$(jq -r '.number // empty' <<<"$PR_JSON")
+          PR_STATE=$(jq -r '.state // empty' <<<"$PR_JSON")
+          if [ "$PR_STATE" = "CLOSED" ]; then
+            echo "PR #$PR_NUMBER was closed by the branch reset, reopening it."
+            gh pr reopen "$PR_NUMBER"
+          elif [ "$PR_STATE" != "OPEN" ]; then
+            gh pr create \
+              --title "chore: update flake.lock" \
+              --body "Automated lockfile update. Check Flake re-validates the new inputs on this PR; auto-merge is enabled and lands this once it's green." \
+              --head "$BRANCH_NAME" \
+              --base main
+          fi
 
+          # Tolerated: fails when auto-merge is already armed. The check below
+          # catches every other outcome.
           gh pr merge "$BRANCH_NAME" --auto --squash || true
+
+          gh pr view "$BRANCH_NAME" --json state,autoMergeRequest \
+            --jq 'if .state == "MERGED" or (.state == "OPEN" and .autoMergeRequest != null) then "lock bump PR: \(.state), auto-merge armed" else error("no open PR with auto-merge for the lock bump (state: \(.state))") end'
