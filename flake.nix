@@ -11,8 +11,6 @@
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
     devenv.url = "github:cachix/devenv";
-    ghostty.url = "github:mitchellh/ghostty";
-    devenv.inputs.ghostty.follows = "ghostty";
     rust-overlay.url = "github:oxalica/rust-overlay";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     nix2container.url = "github:nlewo/nix2container";
