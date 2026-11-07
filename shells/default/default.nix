@@ -83,7 +83,6 @@ in
     pkgs.sops
     pkgs.age
     pkgs.age-plugin-yubikey
-    inputs.nixos-generators.packages.${pkgs.stdenv.hostPlatform.system}.nixos-generate
     pkgs.just
     pkgs.opentofu
     # VCS — jj is the primary verb in this workspace (see .just/jj.just).
