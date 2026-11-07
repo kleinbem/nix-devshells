@@ -4,7 +4,12 @@ let
   androidSdk = pkgs.androidenv.composeAndroidPackages {
     cmdLineToolsVersion = "23.0";
     platformToolsVersion = "37.0.1";
-    buildToolsVersions = [ "37.0.0" ];
+    # AGP 9.x defaults to 36.0.0, and Gradle can't install it into the
+    # read-only store SDK.
+    buildToolsVersions = [
+      "36.0.0"
+      "37.0.0"
+    ];
     includeEmulator = true;
     includeSystemImages = true;
     # google_apis is the rootable image (`--rootable` in the launch scripts).
