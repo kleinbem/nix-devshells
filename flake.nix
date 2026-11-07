@@ -147,6 +147,11 @@
             dbeaver = pkgs.dbeaver-bin;
             rustdesk = pkgs.rustdesk-flutter;
             obs = pkgs.obs-studio;
+          }
+          # Owned here (nix-packages re-exports it): the ai-dev shell needs it,
+          # and nix-packages already depends on this flake.
+          // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+            oh-my-pi = pkgs.callPackage ./pkgs/oh-my-pi { };
           };
 
           devenv.modules = [
