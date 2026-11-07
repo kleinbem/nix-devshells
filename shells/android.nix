@@ -2,9 +2,14 @@
 let
   # Composed Android SDK with emulator and system images
   androidSdk = pkgs.androidenv.composeAndroidPackages {
-    cmdLineToolsVersion = "13.0";
+    cmdLineToolsVersion = "23.0";
     platformToolsVersion = "37.0.1";
-    buildToolsVersions = [ "36.0.0" ];
+    # AGP 9.x defaults to 36.0.0, and Gradle can't install it into the
+    # read-only store SDK.
+    buildToolsVersions = [
+      "36.0.0"
+      "37.0.0"
+    ];
     includeEmulator = true;
     includeSystemImages = true;
     # google_apis is the rootable image (`--rootable` in the launch scripts).
@@ -13,6 +18,8 @@ let
       "google_apis"
     ];
     abiVersions = [ "x86_64" ];
+    # Existing AVDs point at the android-36 images; a new platform drops them
+    # from the SDK and those AVDs stop booting.
     platformVersions = [ "36" ];
   };
 
