@@ -100,13 +100,19 @@ jobs:
           🤖 Opened automatically by the update-oh-my-pi workflow.
           EOF
 
-          gh pr create \
-            --title "chore: update oh-my-pi to ${VERSION}" \
-            --body-file "$BODY_FILE" \
-            --head "$BRANCH_NAME" \
-            --base main || true
+          # Reuse an open PR for the branch; `gh pr view <branch>` could pick an old merged one.
+          open_pr() { gh pr list --head "$BRANCH_NAME" --state open --json number --jq '.[0].number // empty'; }
+          PR=$(open_pr)
+          if [ -z "$PR" ]; then
+            gh pr create \
+              --title "chore: update oh-my-pi to ${VERSION}" \
+              --body-file "$BODY_FILE" \
+              --head "$BRANCH_NAME" \
+              --base main
+            PR=$(open_pr)
+          fi
 
-          echo "pull-request-number=$(gh pr view "$BRANCH_NAME" --json number --jq .number)" >> "$GITHUB_OUTPUT"
+          echo "pull-request-number=$PR" >> "$GITHUB_OUTPUT"
 
       # Fully hands-off: update-oh-my-pi.sh's own `nix build` verification is
       # the gate, so squash-merge immediately. Try repo auto-merge first;
