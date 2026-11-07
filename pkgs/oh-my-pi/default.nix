@@ -1,7 +1,5 @@
-# Oh My Pi (omp, github.com/can1357/oh-my-pi): terminal coding-agent CLI,
-# from the prebuilt release binaries; hashes in ./versions.json
-# (`nix hash file --sri <url>`). A hand-kept copy of nix-packages/pkgs/oh-my-pi,
-# because nix-packages already takes nix-devshells as an input.
+# Oh My Pi (omp), upstream's prebuilt release binaries, pinned in
+# ./versions.json; scripts/update-oh-my-pi.sh bumps them.
 #
 # A `bun build --compile` binary. Its app payload sits in a `.bun` ELF
 # section (oven-sh/bun#26923), so patchelf keeps it intact. The install check
@@ -15,7 +13,7 @@
 }:
 let
   pname = "oh-my-pi";
-  version = "17.2.9";
+  version = "18.17.0";
   inherit (stdenv.hostPlatform) system;
 
   versions = builtins.fromJSON (builtins.readFile ./versions.json);
