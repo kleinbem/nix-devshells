@@ -117,10 +117,10 @@
             programs = treefmtPrograms;
           };
           # formatter-meta: for the meta repos, which have no flake.nix of their own.
-          # Used by nix/.just/maintenance.just (format-all, lint-all). The nix-*/
-          # exclude keeps it out of the sibling sub-flakes.
+          # Used by nix/.just/maintenance.just (format-all, lint-all), so the root
+          # marker is the conductor's justfile. The nix-*/ exclude keeps it out of sub-flakes.
           treefmtEvalMeta = inputs.treefmt-nix.lib.evalModule pkgs {
-            projectRootFile = "repos.nix";
+            projectRootFile = "justfile";
             settings.global.excludes = treefmtExcludes ++ [ "nix-*/**" ];
             programs = treefmtPrograms;
           };

@@ -66,8 +66,6 @@ in
     STARSHIP_SHELL_SYMBOL = "🏗️ ";
   };
 
-  _module.args.inputs = inputs;
-
   processes.workspace-info.exec = "while true; do date; sleep 3600; done";
 
   scripts.workspace-status.exec = ''
