@@ -1,7 +1,6 @@
 {
   lib,
   pkgs,
-  inputs ? { },
   ...
 }:
 
@@ -19,8 +18,6 @@
     NIXPKGS_ALLOW_UNFREE = "1";
     STARSHIP_SHELL_SYMBOL = "🌐 ";
   };
-
-  _module.args.inputs = inputs;
 
   git-hooks.hooks = {
     # Inherited from default/default.nix but targets nix-config/scripts/tests/,
