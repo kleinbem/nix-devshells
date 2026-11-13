@@ -13,7 +13,7 @@
 }:
 let
   pname = "oh-my-pi";
-  version = "18.18.0";
+  version = "18.20.0";
   inherit (stdenv.hostPlatform) system;
 
   versions = builtins.fromJSON (builtins.readFile ./versions.json);
