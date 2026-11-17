@@ -96,6 +96,8 @@
             "*.png"
             "*.jpg"
             "*.vscdb*"
+            # Rewritten by Nix App Center in its own layout.
+            "nix-app-center-*.nix"
           ];
           treefmtPrograms = {
             # Nix
