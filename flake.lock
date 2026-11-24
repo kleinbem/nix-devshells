@@ -1,5 +1,25 @@
 {
   "nodes": {
+    "coderabbit-steward": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795476184,
+        "narHash": "sha256-noEipA0QLb0azwxG+a7p/q74AwHlaFFUI1dVtMsYD9k=",
+        "owner": "kleinbem-dev",
+        "repo": "coderabbit-steward",
+        "rev": "d303e73a9f4003fb8cfa6cea1faf3e631c9f638d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kleinbem-dev",
+        "repo": "coderabbit-steward",
+        "type": "github"
+      }
+    },
     "colmena": {
       "inputs": {
         "nix-github-actions": "nix-github-actions",
@@ -503,6 +523,7 @@
     },
     "root": {
       "inputs": {
+        "coderabbit-steward": "coderabbit-steward",
         "colmena": "colmena",
         "devenv": "devenv",
         "flake-parts": "flake-parts_2",
