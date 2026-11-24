@@ -51,10 +51,9 @@ let
     '';
   };
 
-  cr-steward = lib.optional (inputs ? coderabbit-steward) (
-    let
-      pkg = inputs.coderabbit-steward.packages.${pkgs.stdenv.hostPlatform.system}.default;
-    in
+  crStewardPkg =
+    inputs.coderabbit-steward.packages.${pkgs.stdenv.hostPlatform.system}.default or null;
+  cr-steward = lib.optional (crStewardPkg != null) (
     pkgs.writeShellApplication {
       name = "cr-steward";
       text = ''
@@ -66,11 +65,11 @@ let
         if [ -z "''${CR_STEWARD_URL:-}" ]; then
           export CR_STEWARD_URL=https://steward.kleinbem.dev
         fi
-        if [ "$own" = 1 ] && [ -z "''${CR_STEWARD_API_TOKEN:-}" ] && [ -r /run/secrets/coderabbit_steward_api_token ]; then
-          CR_STEWARD_API_TOKEN="$(< /run/secrets/coderabbit_steward_api_token)"
+        if [ "$own" = 1 ] && [ -z "''${CR_STEWARD_API_TOKEN:-}" ] && [ -r /run/secrets/cr_steward_cli_token ]; then
+          CR_STEWARD_API_TOKEN="$(< /run/secrets/cr_steward_cli_token)"
           export CR_STEWARD_API_TOKEN
         fi
-        exec ${lib.getExe pkg} "$@"
+        exec ${lib.getExe crStewardPkg} "$@"
       '';
     }
   );
