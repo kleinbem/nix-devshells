@@ -50,6 +50,29 @@ let
       exec ${lib.getExe pkgs.home-assistant-cli} "$@"
     '';
   };
+
+  crStewardPkg =
+    inputs.coderabbit-steward.packages.${pkgs.stdenv.hostPlatform.system}.default or null;
+  cr-steward = lib.optional (crStewardPkg != null) (
+    pkgs.writeShellApplication {
+      name = "cr-steward";
+      text = ''
+        own=1
+        [ -n "''${CR_STEWARD_URL:-}" ] && own=0
+        for a in "$@"; do
+          case "$a" in --url | --url=* | --api-token | --api-token=*) own=0 ;; esac
+        done
+        if [ -z "''${CR_STEWARD_URL:-}" ]; then
+          export CR_STEWARD_URL=https://steward.kleinbem.dev
+        fi
+        if [ "$own" = 1 ] && [ -z "''${CR_STEWARD_API_TOKEN:-}" ] && [ -r /run/secrets/cr_steward_cli_token ]; then
+          CR_STEWARD_API_TOKEN="$(< /run/secrets/cr_steward_cli_token)"
+          export CR_STEWARD_API_TOKEN
+        fi
+        exec ${lib.getExe crStewardPkg} "$@"
+      '';
+    }
+  );
 in
 {
   imports = [ ./default/default.nix ];
@@ -117,7 +140,8 @@ in
     pkgs.ollama # client via OLLAMA_HOST
     pkgs.caddy # caddy validate/fmt/adapt
   ]
-  ++ semgrepClis;
+  ++ semgrepClis
+  ++ cr-steward;
 
   tasks."workspace:health" = {
     exec = ''

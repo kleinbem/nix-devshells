@@ -27,6 +27,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nixpkgs-stable.follows = "nixpkgs-stable";
     };
+    coderabbit-steward = {
+      url = "github:kleinbem-dev/coderabbit-steward";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
