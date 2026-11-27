@@ -1,0 +1,32 @@
+name: Maintain Flake
+on:
+  workflow_dispatch:
+  schedule:
+    # 02:00 UTC, first: the other sub-flakes pick up a fresh nix-devshells at 02:15.
+    - cron: '0 2 * * *'
+
+# Nightly flake.lock PR, shared: kleinbem/actions' maintain-flake.
+permissions: {}
+
+jobs:
+  maintain:
+    uses: kleinbem/actions/.github/workflows/maintain-flake.yaml@b3ffb6b2eeb888969e5f16640c84a55956581542 # v1.9.0
+    with:
+      nix-path: nixpkgs=channel:nixos-unstable
+      # Not `nix flake check --no-build`: devenv's task runner comes via IFD,
+      # which --no-build refuses to realize. Evaluate every x86_64 shell instead.
+      # The list goes into a variable first: a failing substitution in a `for`
+      # header doesn't trip -e.
+      validate: |
+        shells=$(nix eval .#devShells.x86_64-linux --apply builtins.attrNames --json | jq -r '.[]')
+        if [ -z "$shells" ]; then
+          echo "no devShells found" >&2
+          exit 1
+        fi
+        for shell in $shells; do
+          echo "eval $shell"
+          nix eval ".#devShells.x86_64-linux.\"$shell\".drvPath" > /dev/null
+        done
+    secrets:
+      app-id: ${{ secrets.APP_ID }}
+      app-private-key: ${{ secrets.APP_PRIVATE_KEY }}

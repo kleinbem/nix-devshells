@@ -1,0 +1,214 @@
+{
+  description = "Development Shells";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    git-hooks.url = "github:cachix/git-hooks.nix";
+    git-hooks.inputs.nixpkgs.follows = "nixpkgs";
+    treefmt-nix.url = "github:numtide/treefmt-nix";
+    treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
+    devenv.url = "github:cachix/devenv";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
+    nix2container.url = "github:nlewo/nix2container";
+    nix2container.inputs.nixpkgs.follows = "nixpkgs";
+    mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
+    nixpkgs-master.url = "github:NixOS/nixpkgs/master";
+    # colmena main rather than nixpkgs' release (0.5.0). No nixpkgs `follows`,
+    # since colmena builds against the nixpkgs it pins itself.
+    # no-link: a choice, not a workaround for an upstream bug.
+    colmena.url = "github:nix-community/colmena";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
+    # Packages the fleet holds back from nixos-unstable while they're broken
+    # there (kleinbem/nix-detour-fleet); replaces the old fallbacks.nix overlay.
+    nix-detour-fleet = {
+      url = "github:kleinbem/nix-detour-fleet";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs-stable.follows = "nixpkgs-stable";
+    };
+    coderabbit-steward = {
+      url = "github:kleinbem-dev/coderabbit-steward";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs =
+    inputs@{ self, flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = [
+        inputs.devenv.flakeModules.default
+        inputs.treefmt-nix.flakeModule
+      ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+
+      flake.devenvModules = {
+        default = ./shells/default/default.nix;
+        python = ./shells/python.nix;
+        nushell = ./shells/nushell.nix;
+        rust = ./shells/rust.nix;
+        go = ./shells/go.nix;
+        node = ./shells/node.nix;
+        full-stack = ./shells/full-stack.nix;
+        ai = ./shells/ai.nix;
+        ai-dev = ./shells/ai-dev.nix;
+        pentest = ./shells/pentest.nix;
+        math = ./shells/math.nix;
+        media = ./shells/media.nix;
+        apps = ./shells/apps.nix;
+        android = ./shells/android.nix;
+        lua = ./shells/lua.nix;
+        arm = ./shells/arm.nix;
+        workspace = ./shells/workspace.nix;
+        openwrt = ./shells/openwrt.nix;
+        esphome = ./shells/esphome.nix;
+        ultimate = ./shells/ultimate.nix;
+        jail = ./modules/jail.nix;
+        parking = ./shells/parking.nix;
+      };
+
+      flake.homeManagerModules = {
+        desktopLaunchers = ./modules/home-manager.nix;
+      };
+
+      perSystem =
+        { system, ... }:
+        let
+          pkgs = import inputs.nixpkgs {
+            inherit system;
+            config = {
+              allowUnfree = true;
+              android_sdk.accept_license = true;
+            };
+            overlays = [
+              inputs.nix-detour-fleet.overlays.default
+            ];
+          };
+          # Shared formatter config (excludes + programs), reused by the
+          # per-flake formatter and the meta-workspace formatter below.
+          treefmtExcludes = [
+            "./.agent/**"
+            "./.devenv/**"
+            "./.direnv/**"
+            "flake.lock"
+            "*.zip"
+            "*.png"
+            "*.jpg"
+            "*.vscdb*"
+            # Rewritten by Nix App Center in its own layout.
+            "nix-app-center-*.nix"
+          ];
+          treefmtPrograms = {
+            # Nix
+            nixfmt.enable = true;
+            statix.enable = true;
+            deadnix.enable = true;
+            # Shell
+            shellcheck.enable = true;
+            shfmt.enable = true;
+            # Python: ruff format only. `ruff check` runs separately
+            # (`just maintenance::lint-python`) so lint errors don't block formatting.
+            ruff-format.enable = true;
+            # Go
+            gofmt.enable = true;
+          };
+          treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
+            projectRootFile = "flake.nix";
+            settings.global.excludes = treefmtExcludes;
+            programs = treefmtPrograms;
+          };
+          # formatter-meta: for the meta repos, which have no flake.nix of their own.
+          # Used by nix/.just/maintenance.just (format-all, lint-all), so the root
+          # marker is the conductor's justfile. The nix-*/ exclude keeps it out of sub-flakes.
+          treefmtEvalMeta = inputs.treefmt-nix.lib.evalModule pkgs {
+            projectRootFile = "justfile";
+            settings.global.excludes = treefmtExcludes ++ [ "nix-*/**" ];
+            programs = treefmtPrograms;
+          };
+        in
+        {
+          _module.args.pkgs = pkgs;
+          _module.args.system = system;
+          formatter = treefmtEval.config.build.wrapper;
+          packages = {
+            # Runnable meta-workspace formatter: `nix run ./nix-devshells#formatter-meta -- [--fail-on-change]`
+            formatter-meta = treefmtEvalMeta.config.build.wrapper;
+
+            # Decoupled standalone app packages (for direct launchers & isolated runs)
+            inherit (pkgs)
+              slack
+              bruno
+              qbittorrent
+              wireshark
+              burpsuite
+              zenmap
+              zap
+              ;
+            inherit (pkgs) "github-desktop" "ente-auth";
+            dbeaver = pkgs.dbeaver-bin;
+            rustdesk = pkgs.rustdesk-flutter;
+            obs = pkgs.obs-studio;
+          }
+          # Owned here (nix-packages re-exports it): the ai-dev shell needs it,
+          # and nix-packages already depends on this flake.
+          // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+            oh-my-pi = pkgs.callPackage ./pkgs/oh-my-pi { };
+          };
+
+          devenv.modules = [
+            (_: {
+              overlays = [
+                inputs.nix-detour-fleet.overlays.default
+              ];
+            })
+          ];
+
+          devenv.shells =
+            let
+              # Hardcoded so the shells evaluate purely: a root from $PWD would need
+              # --impure everywhere, and a store path is read-only for devenv's state.
+              localRoot = "/home/martin/Develop/github.com/kleinbem/nix-devshells";
+              mkShell =
+                module:
+                {
+                  imports = [ module ];
+                  devenv.root = localRoot;
+                }
+                // {
+                  # Pass inputs to the module arguments
+                  _module.args = {
+                    inherit inputs system;
+                  };
+                };
+            in
+            {
+              default = mkShell self.devenvModules.default;
+              python = mkShell self.devenvModules.python;
+              nushell = mkShell self.devenvModules.nushell;
+              rust = mkShell self.devenvModules.rust;
+              go = mkShell self.devenvModules.go;
+              node = mkShell self.devenvModules.node;
+              full-stack = mkShell self.devenvModules.full-stack;
+              ai = mkShell self.devenvModules.ai;
+              ai-dev = mkShell self.devenvModules.ai-dev;
+              pentest = mkShell self.devenvModules.pentest;
+              math = mkShell self.devenvModules.math;
+              media = mkShell self.devenvModules.media;
+              apps = mkShell self.devenvModules.apps;
+              android = mkShell self.devenvModules.android;
+              lua = mkShell self.devenvModules.lua;
+              arm = mkShell self.devenvModules.arm;
+              workspace = mkShell self.devenvModules.workspace;
+              openwrt = mkShell self.devenvModules.openwrt;
+              esphome = mkShell self.devenvModules.esphome;
+              ultimate = mkShell self.devenvModules.ultimate;
+              parking = mkShell self.devenvModules.parking;
+            };
+        };
+    };
+}
