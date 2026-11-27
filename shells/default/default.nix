@@ -137,10 +137,11 @@ in
       && _jjfleet_bin=$(nix build --no-link --print-out-paths "$_jjfleet_root_dir/kleinbem#jj-fleet" 2>/dev/null); then
       export PATH="$_jjfleet_bin/bin:$PATH"
     fi
-    # The fleet's single-repo tools (kleinbem/jj-toolbox, kleinbem/nix-toolbox)
+    # The fleet's single-repo tools (kleinbem/jj-toolbox, kleinbem/nix-toolbox,
+    # kleinbem/coderabbit's cr-full-review)
     # from their checkouts next to kleinbem/, when present.
     if [ -n "''${_jjfleet_root_dir:-}" ]; then
-      for _toolbox in jj-toolbox nix-toolbox; do
+      for _toolbox in jj-toolbox nix-toolbox coderabbit; do
         if [ -d "$_jjfleet_root_dir/$_toolbox/bin" ]; then
           export PATH="$_jjfleet_root_dir/$_toolbox/bin:$PATH"
         fi
