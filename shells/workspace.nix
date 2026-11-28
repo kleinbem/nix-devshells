@@ -132,6 +132,7 @@ in
     pkgs.stalwart-cli
     pkgs.ente-cli
     pkgs.qbittorrent-cli # qbt
+    (clisOf pkgs.python3Packages.huggingface-hub [ "hf" ]) # Hugging Face Jobs and models
     # Server packages that ship the client: keep only the client on PATH.
     (clisOf pkgs.grafana-loki [ "logcli" ])
     (clisOf pkgs.prometheus-alertmanager [ "amtool" ])
